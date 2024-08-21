@@ -2,7 +2,7 @@ import * as cheerio from 'cheerio'
 import { Paper } from '../classes/Paper'
 import { Newspaper } from '../enums'
 import { differenceDays } from '../helpers/date'
-import { fetchWithRetry } from '../helpers/fetch'
+import { fetchPage, fetchPaper } from '../helpers/fetch'
 import { splitIntoBlocks } from '../helpers/array'
 
 export class ElMostrador {
@@ -13,8 +13,8 @@ export class ElMostrador {
 
   public async run (): Promise<Paper[]> {
     console.time('El Mostrador')
-    // const lastDate: Date | undefined = undefined
-    const lastDate: Date | undefined = new Date('2023-08-14')
+    const lastDate: Date | undefined = undefined
+    // const lastDate: Date | undefined = new Date('2023-08-14')
 
     let pages: string[] = []
 
@@ -31,7 +31,8 @@ export class ElMostrador {
     for (const block of blocks) {
       const urls = (await Promise.all(block.map(async page => await this.getPaperUrls(page)))).flat()
       const papers = (await Promise.all(urls.map(async url => await this.getPaper(url)))).flat()
-      allPapers.push(...papers)
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+      allPapers.push(...papers.filter(p => p !== undefined) as Paper[])
       console.log(allPapers.length)
     }
 
@@ -41,7 +42,9 @@ export class ElMostrador {
 
   // TODO: obtiene todas las paginas
   private async getAllPages (): Promise<string[]> {
-    const body = await fetchWithRetry(this.BASE_URL)
+    const body = await fetchPage(this.BASE_URL)
+    if (body === undefined) return []
+
     const $ = cheerio.load(body)
 
     const pageItems = $('.the-pagination .the-pagination__item')
@@ -53,7 +56,9 @@ export class ElMostrador {
 
   // TODO: obtiene de la pagina 5 el ultimo paper y si la diferencia de dias es menor a 2 dias, aumenta otras 5 paginas
   private async getPages (lastDate: Date, pagesCount: number): Promise<string[]> {
-    const body = await fetchWithRetry(`${this.BASE_URL}page/${pagesCount}/`)
+    const body = await fetchPage(`${this.BASE_URL}page/${pagesCount}/`)
+    if (body === undefined) return []
+
     const $ = cheerio.load(body)
 
     const paperItems = $('.d-section__body .d-tag-card .d-tag-card__date')
@@ -68,7 +73,9 @@ export class ElMostrador {
   }
 
   private async getPaperUrls (page: string): Promise<string[]> {
-    const body = await fetchWithRetry(page, this.SLEEP)
+    const body = await fetchPage(page, this.SLEEP)
+    if (body === undefined) return []
+
     const $ = cheerio.load(body)
 
     const links = $('.d-section__body .d-tag-card__title .d-tag-card__permalink')
@@ -81,8 +88,9 @@ export class ElMostrador {
     return urls
   }
 
-  private async getPaper (url: string): Promise<Paper> {
-    const body = await fetchWithRetry(url, this.SLEEP)
+  private async getPaper (url: string): Promise<Paper | undefined> {
+    const body = await fetchPaper(url, this.SLEEP)
+    if (body === undefined) return undefined
 
     const paper = new Paper(Newspaper.EL_MOSTRADOR, url)
     paper.setElMostradorData(body)
