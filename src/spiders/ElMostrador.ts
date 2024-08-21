@@ -2,36 +2,36 @@ import * as cheerio from 'cheerio'
 import { Paper } from '../classes/Paper'
 import { Newspaper } from '../enums'
 import { differenceDays } from '../helpers/date'
+import { fetchWithRetry } from '../helpers/fetch'
 import { splitIntoBlocks } from '../helpers/array'
-import { delay, fetchWithRetry } from '../helpers/fetch'
 
 export class ElMostrador {
   private readonly BASE_URL = 'https://www.elmostrador.cl/categoria/dia/'
   private readonly PAGE_RANGE = 100
-  private readonly PAGE_BLOCK = 100
-  private readonly SLEEP_BLOCK = 30000 // 5 segundos
+  private readonly PAGE_BLOCK = 200
+  private readonly SLEEP = 10000
 
   public async run (): Promise<Paper[]> {
     console.time('El Mostrador')
-    const lastDate: Date | undefined = undefined
-    // const lastDate: Date | undefined = new Date('2023-08-14')
+    // const lastDate: Date | undefined = undefined
+    const lastDate: Date | undefined = new Date('2023-08-14')
 
     let pages: string[] = []
 
     if (lastDate === undefined) pages = await this.getAllPages()
     else pages = await this.getPages(lastDate, this.PAGE_RANGE)
+
+    pages.reverse() //* Siempre guardar las noticias mas antiguas primero
     console.log(pages.length)
 
-    // TODO: crear bloques de 50 paginas e iterar: obtener los papers y esperar 10 segundos
-    pages = pages.reverse() //* siempre guardar las ultimas noticias primero
+    // TODO: crear bloques de x paginas e iterar
     const blocks = splitIntoBlocks(pages, this.PAGE_BLOCK)
 
     const allPapers: Paper[] = []
     for (const block of blocks) {
-      await delay(this.SLEEP_BLOCK)
       const urls = (await Promise.all(block.map(async page => await this.getPaperUrls(page)))).flat()
       const papers = (await Promise.all(urls.map(async url => await this.getPaper(url)))).flat()
-      allPapers.push(...papers.filter(paper => paper !== undefined))
+      allPapers.push(...papers)
       console.log(allPapers.length)
     }
 
@@ -68,7 +68,7 @@ export class ElMostrador {
   }
 
   private async getPaperUrls (page: string): Promise<string[]> {
-    const body = await fetchWithRetry(page)
+    const body = await fetchWithRetry(page, this.SLEEP)
     const $ = cheerio.load(body)
 
     const links = $('.d-section__body .d-tag-card__title .d-tag-card__permalink')
@@ -81,16 +81,11 @@ export class ElMostrador {
     return urls
   }
 
-  private async getPaper (url: string): Promise<Paper | undefined> {
-    try {
-      const body = await fetchWithRetry(url)
+  private async getPaper (url: string): Promise<Paper> {
+    const body = await fetchWithRetry(url, this.SLEEP)
 
-      const paper = new Paper(Newspaper.EL_MOSTRADOR, url)
-      paper.setElMostradorData(body)
-      return paper
-    } catch (error) {
-      console.error('Error al cargar la url:', url, error)
-      return undefined
-    }
+    const paper = new Paper(Newspaper.EL_MOSTRADOR, url)
+    paper.setElMostradorData(body)
+    return paper
   }
 }
