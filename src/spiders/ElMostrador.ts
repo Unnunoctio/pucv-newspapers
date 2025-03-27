@@ -1,28 +1,28 @@
 import * as cheerio from 'cheerio'
 import { Paper } from '../classes/Paper'
 import { Newspaper } from '../enums'
+import { splitIntoBlocks } from '../helpers/array'
 import { differenceDays } from '../helpers/date'
 import { fetchPage, fetchPaper } from '../helpers/fetch'
-import { splitIntoBlocks } from '../helpers/array'
 
 export class ElMostrador {
   private readonly BASE_URL = 'https://www.elmostrador.cl/categoria/dia/'
-  private readonly PAGE_RANGE = 100
-  private readonly PAGE_BLOCK = 200
-  private readonly SLEEP = 10000
+  private readonly PAGE_BLOCK = 10
+  private readonly SLEEP = 5000
 
-  public async run (): Promise<Paper[]> {
+  public async run (startDate: Date | undefined): Promise<Paper[]> {
+    console.log('Obteniendo noticias desde El Mostrador...')
     console.time('El Mostrador')
-    const lastDate: Date | undefined = undefined
-    // const lastDate: Date | undefined = new Date('2023-08-14')
+    if (startDate === undefined) {
+      startDate = new Date()
+    }
 
     let pages: string[] = []
-
-    if (lastDate === undefined) pages = await this.getAllPages()
-    else pages = await this.getPages(lastDate, this.PAGE_RANGE)
+    const totalPages = await this.getTotalPages()
+    pages = await this.getPages(startDate, 1, totalPages)
 
     pages.reverse() //* Siempre guardar las noticias mas antiguas primero
-    console.log(pages.length)
+    console.log('Cantidad de páginas: ', pages.length)
 
     // TODO: crear bloques de x paginas e iterar
     const blocks = splitIntoBlocks(pages, this.PAGE_BLOCK)
@@ -30,46 +30,51 @@ export class ElMostrador {
     const allPapers: Paper[] = []
     for (const block of blocks) {
       const urls = (await Promise.all(block.map(async page => await this.getPaperUrls(page)))).flat()
-      const papers = (await Promise.all(urls.map(async url => await this.getPaper(url)))).flat()
+      const papers = (await Promise.all(urls.map(async url => await this.getPaper(url, startDate)))).flat()
+      console.log('Cantidad de Papers:', papers.length)
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
       allPapers.push(...papers.filter(p => p !== undefined) as Paper[])
-      console.log(allPapers.length)
     }
 
     console.timeEnd('El Mostrador')
-    return []
+    return allPapers
   }
 
-  // TODO: obtiene todas las paginas
-  private async getAllPages (): Promise<string[]> {
+  // TODO: obtiene el numero total de  paginas
+  private async getTotalPages (): Promise<number> {
     const body = await fetchPage(this.BASE_URL)
-    if (body === undefined) return []
+    if (body === undefined) return 0
 
     const $ = cheerio.load(body)
 
     const pageItems = $('.the-pagination .the-pagination__item')
     const lastPageUrl = pageItems.last().attr('href')
-    const lastPage = parseInt(lastPageUrl?.split('/')[6] as string)
-
-    return Array.from({ length: lastPage }, (_, i) => `${this.BASE_URL}page/${i + 1}/`)
+    return parseInt(lastPageUrl?.split('/')[6] as string)
   }
 
-  // TODO: obtiene de la pagina 5 el ultimo paper y si la diferencia de dias es menor a 2 dias, aumenta otras 5 paginas
-  private async getPages (lastDate: Date, pagesCount: number): Promise<string[]> {
-    const body = await fetchPage(`${this.BASE_URL}page/${pagesCount}/`)
-    if (body === undefined) return []
+  // TODO: obtiene la pagina con la fecha anterior, de esta manera se evita omitir noticias
+  private async getPages (searchDate: Date, startPage: number, endPage: number): Promise<string[]> {
+    if (startPage >= endPage - 1) return Array.from({ length: endPage }, (_, i) => `${this.BASE_URL}page/${i + 1}/`)
+
+    const midPage = Math.floor((startPage + endPage) / 2)
+
+    const body = await fetchPage(`${this.BASE_URL}page/${midPage}/`)
+    if (body === undefined) return await this.getPages(searchDate, startPage + 1, endPage)
 
     const $ = cheerio.load(body)
-
-    const paperItems = $('.d-section__body .d-tag-card .d-tag-card__date')
+    const pageItems = $('.d-section__body .d-tag-card .d-tag-card__date')
     // Date (dd-mm-aaaa)
-    const lastPapertime = (paperItems.last().attr('datetime') as string).split('-')
+    const lastPapertime = (pageItems.last().attr('datetime') as string).split('-')
     const lastPaperDate = new Date(`${lastPapertime[2]}-${lastPapertime[1]}-${lastPapertime[0]}`)
 
-    const diff = differenceDays(lastDate, lastPaperDate)
-
-    if (diff >= 1) return Array.from({ length: pagesCount }, (_, i) => `${this.BASE_URL}page/${i + 1}/`)
-    return await this.getPages(lastDate, pagesCount + this.PAGE_RANGE)
+    const diff = differenceDays(searchDate, lastPaperDate)
+    if (diff === 1) {
+      return Array.from({ length: midPage }, (_, i) => `${this.BASE_URL}page/${i + 1}/`)
+    } else if (diff > 1) {
+      return await this.getPages(searchDate, startPage, midPage)
+    } else {
+      return await this.getPages(searchDate, midPage, endPage)
+    }
   }
 
   private async getPaperUrls (page: string): Promise<string[]> {
@@ -88,9 +93,19 @@ export class ElMostrador {
     return urls
   }
 
-  private async getPaper (url: string): Promise<Paper | undefined> {
+  private async getPaper (url: string, startDate: Date): Promise<Paper | undefined> {
     const body = await fetchPaper(url, this.SLEEP)
     if (body === undefined) return undefined
+
+    // TODO: Verificar si la fecha es igual o posterior a la fecha de inicio
+    const $ = cheerio.load(body)
+    const datetime = $('.d-the-single__date').attr('datetime')
+    if (datetime === undefined) {
+      return undefined
+    } else {
+      const date = new Date(datetime)
+      if (differenceDays(startDate, date) >= 1) return undefined
+    }
 
     const paper = new Paper(Newspaper.EL_MOSTRADOR, url)
     paper.setElMostradorData(body)
