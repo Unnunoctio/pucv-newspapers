@@ -6,14 +6,15 @@ const RETRY_DELAY = 5000
 export const fetchPage = async (url: string, delay: number = RETRY_DELAY, retries = 0): Promise<any | undefined> => {
   try {
     const { data } = await axios.get(url)
+    // console.log(`URL: ${url} fetched successfully.`)
     return data
   } catch (error: any) {
     if (retries < MAX_RETRIES) {
-      console.log(`RETRY ${retries + 1} for URL: ${url}`)
+      console.warn(`RETRY ${retries + 1} for URL: ${url}`)
       await sleep(delay)
       return await fetchPage(url, delay, retries + 1)
     } else {
-      console.error(`FAILED to fetch URL: ${url} after ${MAX_RETRIES} retries.`)
+      console.error(`FAILED fetch after ${MAX_RETRIES} for URL: ${url}`)
       return undefined
     }
   }
@@ -22,20 +23,20 @@ export const fetchPage = async (url: string, delay: number = RETRY_DELAY, retrie
 export const fetchPaper = async (url: string, delay: number = RETRY_DELAY, retries = 0): Promise<any | undefined> => {
   try {
     const { data } = await axios.get(url)
-    console.log(`URL: ${url} fetched successfully.`)
+    console.log(`OK for URL: ${url}`)
     return data
   } catch (error: any) {
     if (error?.response?.status === 404) {
-      console.error(`404 url not found: ${url}`)
+      console.error(`404 not found for URL: ${url}`)
       return undefined
     }
 
     if (retries < MAX_RETRIES) {
-      console.log(`RETRY ${retries + 1} for URL: ${url}`)
+      console.warn(`RETRY ${retries + 1} for URL: ${url}`)
       await sleep(delay)
       return await fetchPaper(url, delay, retries + 1)
     } else {
-      console.error(`FAILED to fetch URL: ${url} after ${MAX_RETRIES} retries.`)
+      console.error(`FAILED fetch after ${MAX_RETRIES} for URL: ${url}`)
       return undefined
     }
   }
