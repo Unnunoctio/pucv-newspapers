@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
 import * as cheerio from 'cheerio'
+import { convert } from 'html-to-text'
 import type { Newspaper } from '../enums'
 
 export class Paper {
@@ -52,5 +53,113 @@ export class Paper {
         this.body += elemString + '\n'
       }
     })
+  }
+
+  setCooperativaData (data: any, date: Date): void {
+    const $ = cheerio.load(data)
+    // AUTHOR
+    if ($('.fecha-publicacion span').length > 0) {
+      this.author = $('.fecha-publicacion span').text().trim()
+    }
+    // DATE
+    this.date = date
+    // TAG
+    if ($('.rotulo-topicos').length > 0) {
+      const tags = $('.rotulo-topicos a span')
+      this.tag = $(tags[0]).text().trim()
+    } else {
+      const urlSplit = this.url.split('/')
+      this.tag = urlSplit[4]
+    }
+    // TITLE
+    this.title = $('h1.titular').text().trim()
+    // DROPHEAD
+    this.drophead = ''
+    if ($('.contenedor-bajada .texto-bajada p').length > 0) {
+      const paragraphs = $('.contenedor-bajada .texto-bajada p')
+      paragraphs.each((_, elem) => {
+        const elemString = $(elem).text().trim()
+        this.drophead += elemString + '\n'
+      })
+    }
+    // EXCERPT
+    // BODY
+    const bodyElem = $('.contenedor-cuerpo .texto-bajada .cuerpo-articulo .cuerpo-ad')
+    const elements = bodyElem.find('h2, p, li')
+    this.body = ''
+    elements.each((_, elem) => {
+      const elemString = $(elem).text().trim()
+      this.body += elemString + '\n'
+    })
+  }
+
+  setEmolData (data: EmolApiHitHitSource): void {
+    // AUTHOR
+    if (data.author !== undefined) {
+      this.author = data.author
+    }
+    // DATE
+    if (data.fechaPublicacion !== undefined) {
+      this.date = new Date(data.fechaPublicacion.split('T')[0])
+    }
+    // TAG
+    if (data.subSeccion !== undefined) {
+      this.tag = data.subSeccion
+    } else if (data.seccion !== undefined) {
+      this.tag = data.seccion
+    }
+    // TITLE
+    if (data.titulo !== undefined) {
+      this.title = data.titulo
+    }
+    // DROPHEAD
+    if (data.bajada !== undefined) {
+      this.drophead = data.bajada[0].texto
+    }
+    // EXCERPT
+    // BODY
+    if (data.texto !== undefined) {
+      this.body = convert(data.texto, { wordwrap: false })
+    }
+  }
+
+  setTVNData (data: any): void {
+    const $ = cheerio.load(data)
+    // AUTHOR
+    if ($('.cont-credits').length > 0) {
+      if ($('.cont-credits .author').length > 0) {
+        this.author = $('.cont-credits .author').text().trim()
+        if ($('.cont-credits .credit').length > 0) {
+          const authorCredit = $('.cont-credits .credit').text().trim()
+          this.author += `, ${authorCredit}`
+        }
+      }
+    }
+    // DATE
+    if ($('.toolbar .fecha').length > 0) {
+      const dateString = $('.toolbar .fecha').text().trim()
+      const dateSplit = dateString.split(' ')
+
+      const months = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
+      this.date = new Date(Number(dateSplit[5]), months.indexOf(dateSplit[3]), Number(dateSplit[1]))
+    }
+    // TAG
+    if ($('.breadcrumbs').length > 0) {
+      this.tag = $('.breadcrumbs .breadcrumb a').last().text().trim()
+    }
+    // TITLE
+    if ($('.tit').length > 0) {
+      this.title = $('.tit').text().trim()
+    }
+    // DROPHEAD
+    if ($('.baj').length > 0) {
+      this.drophead = $('.baj').text().trim()
+    }
+    // EXCERPT
+    // BODY
+    if ($('.CUERPO').length > 0) {
+      const bodyElem = $('.CUERPO').html()
+      this.body = convert(bodyElem as string, { wordwrap: false })
+    }
   }
 }

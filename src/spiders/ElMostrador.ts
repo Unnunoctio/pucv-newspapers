@@ -18,7 +18,6 @@ export class ElMostrador {
     const totalPages = await this.getTotalPages()
     const startPage = await this.getStartPage(startDate, 1, totalPages)
     const endPage = await this.getEndPage(endDate, 1, startPage)
-    console.log('Noticias entre las paginas:', endPage, '-', startPage)
 
     const pages = await this.generatePages(startPage, endPage)
     pages.reverse() //* Siempre guardar las noticias mas antiguas primero

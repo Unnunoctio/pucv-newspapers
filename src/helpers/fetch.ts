@@ -9,6 +9,11 @@ export const fetchPage = async (url: string, delay: number = RETRY_DELAY, retrie
     // console.log(`URL: ${url} fetched successfully.`)
     return data
   } catch (error: any) {
+    if (error?.response?.status === 404) {
+      console.error(`404 not found for URL: ${url}`)
+      return undefined
+    }
+
     if (retries < MAX_RETRIES) {
       console.warn(`RETRY ${retries + 1} for URL: ${url}`)
       await sleep(delay)

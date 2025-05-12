@@ -8,10 +8,28 @@ export const differenceDays = (date1: Date, date2: Date): number => {
 
 export const validateDate = (date: string, errorMessage: string): Date => {
   try {
-    const parsedDate = new Date(date)
-    if (isNaN(parsedDate.getTime())) {
+    // Verificar si la fecha tiene el formato correcto (YYYY-MM-DD)
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/
+    if (!dateRegex.test(date)) {
       throw new Error(errorMessage)
     }
+
+    // Extraer año, mes y día
+    const [year, month, day] = date.split('-').map(Number)
+
+    // Crear una fecha con los componentes
+    const parsedDate = new Date(year, month - 1, day)
+
+    // Verificar si la fecha resultante tiene el mismo año, mes y día que la entrada
+    // Esto detectará fechas inválidas como 2025-02-31
+    if (
+      parsedDate.getFullYear() !== year ||
+      parsedDate.getMonth() !== month - 1 ||
+      parsedDate.getDate() !== day
+    ) {
+      throw new Error(errorMessage)
+    }
+
     return parsedDate
   } catch (error) {
     throw new Error(errorMessage)
