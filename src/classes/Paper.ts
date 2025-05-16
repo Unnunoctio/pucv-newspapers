@@ -113,7 +113,7 @@ export class Paper {
       this.title = data.titulo
     }
     // DROPHEAD
-    if (data.bajada !== undefined) {
+    if (data.bajada !== undefined && data.bajada.length > 0) {
       this.drophead = data.bajada[0].texto
     }
     // EXCERPT

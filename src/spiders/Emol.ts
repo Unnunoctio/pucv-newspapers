@@ -76,18 +76,20 @@ export class Emol {
   }
 
   private async getPaperJson (startPaper: number, endPaper: number): Promise<EmolApiHitHit[]> {
-    const MAX_SIZE = 5000
+    const MAX_SIZE = 500
     const size = startPaper - (endPaper - 1)
 
     if (size > MAX_SIZE) {
       const hits: EmolApiHitHit[] = []
       for (let i = endPaper; i < startPaper; i += MAX_SIZE) {
+        console.log(`URL: ${this.BASE_URL}size=${MAX_SIZE}&from=${i}`)
         const data: EmolApiResponse = await fetchPage(`${this.BASE_URL}size=${MAX_SIZE}&from=${i}`)
         hits.push(...data.hits.hits)
       }
       return hits
     }
 
+    console.log(`URL: ${this.BASE_URL}size=${size}&from=${endPaper}`)
     const data: EmolApiResponse = await fetchPage(`${this.BASE_URL}size=${size}&from=${endPaper}`)
     return data.hits.hits
   }
