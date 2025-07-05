@@ -20,7 +20,8 @@ export const createExcelFile = async (papers: Paper[], fileName: string, folderP
             { header: 'Título', key: 'title' },
             { header: 'Bajada', key: 'drophead' },
             { header: 'Resumen', key: 'excerpt' },
-            { header: 'Cuerpo', key: 'body' }
+            { header: 'Cuerpo', key: 'body' },
+            { header: 'Cuerpo HTML', key: 'bodyHTML' }
         ]
 
         const data = groupPapers[newspaper]?.toSorted((a, b) => {

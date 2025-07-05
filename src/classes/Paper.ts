@@ -13,6 +13,7 @@ export class Paper {
     drophead: string | undefined // subtitulo o bajada
     excerpt: string | undefined // primer parrafo
     body: string | undefined // cuerpo de la noticia
+    bodyHTML: string | undefined // cuerpo de la noticia en HTML
 
     constructor(newspaper: Newspaper, url: string) {
         this.newspaper = newspaper
@@ -45,14 +46,20 @@ export class Paper {
         this.excerpt = $('.d-the-single__excerpt').text().trim()
         // BODY
         const bodyElem = $('.d-the-single-wrapper__text')
-        const elements = bodyElem.find('h3, p, li')
-        this.body = ''
-        elements.each((_, elem) => {
-            const elemString = $(elem).text().trim()
-            if (elemString.split(' ')[0] !== 'Inscríbete') {
-                this.body += elemString + '\n'
-            }
-        })
+        // bodyElem.find('iframe').remove()
+        
+        const bodyHTML = bodyElem.html() as string
+        this.bodyHTML = bodyHTML
+        this.body = convert(bodyHTML, { wordwrap: false })
+
+        // const elements = bodyElem.find('h3, p, li')
+        // this.body = ''
+        // elements.each((_, elem) => {
+        //     const elemString = $(elem).text().trim()
+        //     if (elemString.split(' ')[0] !== 'Inscríbete') {
+        //         this.body += elemString + '\n'
+        //     }
+        // })
     }
 
     setCooperativaData(data: any, date: Date): void {
