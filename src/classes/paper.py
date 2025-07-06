@@ -1,0 +1,91 @@
+from datetime import datetime
+
+from bs4 import BeautifulSoup
+from html2text import HTML2Text
+
+
+class Paper:
+    def __init__(self, newspaper: str, url: str):
+        self.newspaper = newspaper
+        self.url = url
+        self.author: str | None = None
+        self.date: datetime | None = None
+        self.tag: str | None = None
+        self.title: str | None = None
+        self.drophead: str | None = None
+        self.excerpt: str | None = None
+        self.body: str | None = None
+        self.bodyHTML: str | None = None
+
+        # configurar el parser de html
+        self.parser = HTML2Text()
+        self.parser.ignore_links = True
+        self.parser.ignore_images = True
+        self.parser.body_width = 0
+        self.parser.skip_internal_links = True
+        self.parser.unicode_snob = True
+
+        # Desactivar formato Markdown
+        self.parser.bold = False
+        self.parser.italic = False
+        self.parser.underline = False
+        self.parser.mark_code = False
+        self.parser.ignore_emphasis = True
+        self.parser.skip_internal_links = True
+        self.parser.single_line_break = True
+        
+
+    def __str__(self) -> str:
+        return f"PAPER: {self.newspaper} \nURL: {self.url} \nAUTHOR: {self.author} \nDATE: {self.date} \nTAG: {self.tag} \nTITLE: {self.title} \nDROPHEAD: {self.drophead} \nEXPERT: {self.excerpt} \nBODY: {self.body}"
+
+    def set_cooperativa_data(self, data: str, date: datetime) -> None:
+        soup = BeautifulSoup(data, "html.parser")
+
+        # AUTHOR
+        author_elem = soup.select_one(".fecha-publicacion span")
+        if author_elem is not None:
+            self.author = author_elem.get_text(strip=True)
+        
+        # DATE
+        self.date = date
+
+        # TAG
+        tag_container_elem = soup.select_one('.rotulo-topicos')
+        if tag_container_elem:
+            tags_elem = tag_container_elem.select('a span')
+            if tags_elem:
+                self.tag = tags_elem[0].get_text(strip=True)
+        else:
+            url_parts = self.url.split('/')
+            if len(url_parts) > 4:
+                self.tag = url_parts[4]
+        
+        # TITLE
+        title_elem = soup.select_one("h1.titular")
+        if title_elem:
+            self.title = title_elem.get_text(strip=True)
+        
+        # DROPHEAD
+        drophead_elem = soup.select_one(".contenedor-bajada .texto-bajada")
+        if drophead_elem:
+            drophead_html = drophead_elem.decode_contents(formatter="html")
+            self.drophead = self.parser.handle(drophead_html).strip()
+
+        # EXCERPT
+        # BODY
+        body_elem = soup.select_one(".contenedor-cuerpo .texto-bajada .cuerpo-articulo")
+        if body_elem:
+            for elem in body_elem.find_all("iframe"):
+                elem.decompose()
+            for elem in body_elem.find_all("script"):
+                elem.decompose()
+            for elem in body_elem.find_all("blockquote"):
+                elem.decompose()
+            for elem in body_elem.find_all("p", class_="prompt"):
+                elem.decompose()
+
+            body_html = body_elem.decode_contents(formatter="html")
+            self.body = self.parser.handle(body_html).strip()
+            self.bodyHTML = body_html
+
+
