@@ -1,7 +1,9 @@
+import asyncio
 import logging
 
 from services.excel_exporter import ExcelExporter
 from spiders.cooperativa import Cooperativa
+from spiders.tvn_noticias import TvnNoticias
 from utils.date_utils import DateUtils
 from utils.file_utils import FileUtils
 
@@ -30,11 +32,11 @@ class ScraperRun:
             self.end_date = end_date_dt
         except Exception as e:
             self.logger.error(e)
-            return
+            exit(1)
 
     def _set_spiders(self, spiders_to_run: dict) -> None:
         self.spiders = []
-        all_spiders = [Cooperativa()]
+        all_spiders = [Cooperativa(), TvnNoticias()]
 
         for spider in all_spiders:
             for key, value in spiders_to_run.items():
@@ -45,7 +47,7 @@ class ScraperRun:
     def run(self) -> None:
         self.papers = []
         for spider in self.spiders:
-            spider_papers = spider.run(self.start_date, self.end_date)
+            spider_papers = asyncio.run(spider.run(self.start_date, self.end_date))
             self.papers.extend(spider_papers)
 
         self._print_stats()

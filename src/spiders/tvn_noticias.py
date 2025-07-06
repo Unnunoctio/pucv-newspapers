@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import aiohttp
 from bs4 import BeautifulSoup
@@ -10,11 +10,11 @@ from classes.paper import Paper
 from services.web_fetcher import WebFetcher
 
 
-class Cooperativa:
+class TvnNoticias:
     def __init__(self):
-        self.SITE_NAME = "COOPERATIVA"
-        self.BASE_URL = "https://www.cooperativa.cl"
-        self.PAGE_BASE_URL = "https://www.cooperativa.cl/noticias/site/cache/nroedic/todas/"
+        self.SITE_NAME = "TVN_NOTICIAS"
+        self.BASE_URL = "https://www.tvn.cl/noticias"
+        self.PAPER_BASE_URL = "https://www.tvn.cl"
         self.fetcher = WebFetcher(delay=5, max_concurrent=10)
 
         # Configure logging
@@ -25,7 +25,10 @@ class Cooperativa:
         self.logger.info(f"Obteniendo noticias desde {self.SITE_NAME}...")
         start_time = time.time()
 
-        pages = self.generate_pages(start_date, end_date)
+        total_pages = self.get_total_pages()
+        pages = self.generate_pages(1, total_pages)
+        pages.reverse()
+
         all_papers = []
         async with aiohttp.ClientSession() as session:
             block_urls = await self.async_get_papers_urls(session, pages)
@@ -38,15 +41,19 @@ class Cooperativa:
         self.logger.info(f"{self.SITE_NAME}: {end_time - start_time} segundos")
         return all_papers
 
-    def generate_pages(self, start_date: datetime, end_date: datetime) -> list[str]:
-        pages = []
-        i_date = start_date
-        while i_date <= end_date:
-            date_formatted = i_date.strftime("%Y%m%d")
-            pages.append(f"{self.PAGE_BASE_URL}{date_formatted}.html")
-            i_date += timedelta(days=1)
+    def get_total_pages(self) -> int:
+        body = self.fetcher.fetch_page(f"{self.BASE_URL}/p/1")
+        if body is None:
+            return 0
 
-        return pages
+        soup = BeautifulSoup(body, "html.parser")
+        page_items = soup.select(".auxi .wp-pagenavi a")
+
+        last_page_url = page_items[-1].get("href")
+        return int(last_page_url.split("/")[3])
+
+    def generate_pages(self, start_page: int, end_page: int) -> list[str]:
+        return [f"{self.BASE_URL}/p/{page}/" for page in range(start_page, end_page + 1)]
 
     async def async_get_papers_urls(self, session: aiohttp.ClientSession, pages: list[str]) -> list[list[str]]:
         tasks = [self.async_get_paper_urls(session, page) for page in pages]
@@ -59,12 +66,12 @@ class Cooperativa:
 
         soup = BeautifulSoup(body, "html.parser")
 
-        links = soup.select(".art-todas a")
+        links = soup.select(".auxi .row article a")
         urls = set()
         for elem in links:
             paper_url = elem.get("href")
             if paper_url is not None:
-                url = f"{self.BASE_URL}{paper_url}"
+                url = f"{self.PAPER_BASE_URL}{paper_url}"
                 urls.add(url)
 
         return list(urls)
@@ -79,5 +86,5 @@ class Cooperativa:
             return None
 
         paper = Paper(self.SITE_NAME, url)
-        paper.set_cooperativa_data(body)
+        paper.set_tvn_data(body)
         return paper

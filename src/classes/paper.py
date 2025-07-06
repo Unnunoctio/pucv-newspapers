@@ -33,38 +33,38 @@ class Paper:
         self.parser.ignore_emphasis = True
         self.parser.skip_internal_links = True
         self.parser.single_line_break = True
-        
 
     def __str__(self) -> str:
         return f"PAPER: {self.newspaper} \nURL: {self.url} \nAUTHOR: {self.author} \nDATE: {self.date} \nTAG: {self.tag} \nTITLE: {self.title} \nDROPHEAD: {self.drophead} \nEXPERT: {self.excerpt} \nBODY: {self.body}"
 
-    def set_cooperativa_data(self, data: str, date: datetime) -> None:
+    def set_cooperativa_data(self, data: str) -> None:
         soup = BeautifulSoup(data, "html.parser")
 
         # AUTHOR
         author_elem = soup.select_one(".fecha-publicacion span")
         if author_elem is not None:
             self.author = author_elem.get_text(strip=True)
-        
+
         # DATE
-        self.date = date
+        date = self.url.split("/")[-2]
+        self.date = datetime.strptime(date, "%Y-%m-%d")
 
         # TAG
-        tag_container_elem = soup.select_one('.rotulo-topicos')
+        tag_container_elem = soup.select_one(".rotulo-topicos")
         if tag_container_elem:
-            tags_elem = tag_container_elem.select('a span')
+            tags_elem = tag_container_elem.select("a span")
             if tags_elem:
                 self.tag = tags_elem[0].get_text(strip=True)
         else:
-            url_parts = self.url.split('/')
+            url_parts = self.url.split("/")
             if len(url_parts) > 4:
                 self.tag = url_parts[4]
-        
+
         # TITLE
         title_elem = soup.select_one("h1.titular")
         if title_elem:
             self.title = title_elem.get_text(strip=True)
-        
+
         # DROPHEAD
         drophead_elem = soup.select_one(".contenedor-bajada .texto-bajada")
         if drophead_elem:
@@ -88,4 +88,53 @@ class Paper:
             self.body = self.parser.handle(body_html).strip()
             self.bodyHTML = body_html
 
+    def set_tvn_data(self, data: str) -> None:
+        soup = BeautifulSoup(data, "html.parser")
 
+        # AUTHOR
+        author_elem = soup.select_one(".cont-credits .author")
+        if author_elem is not None:
+            self.author = author_elem.get_text(strip=True)
+            author_credit_elem = soup.select_one(".cont-credits .credit")
+            if author_credit_elem is not None:
+                self.author = f"{self.author}, {author_credit_elem.get_text(strip=True)}"
+
+        # DATE
+        date_elem = soup.select_one(".toolbar .fecha")
+        if date_elem is not None:
+            date_str = date_elem.get_text(strip=True)
+            date_split = date_str.split(" ")
+
+            months = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"]
+            self.date = datetime(int(date_split[5]), months.index(date_split[3]) + 1, int(date_split[1]))
+
+        # TAG
+        tag_elem = soup.select(".breadcrumbs .breadcrumb a")
+        if len(tag_elem) > 0:
+            self.tag = tag_elem[-1].get_text(strip=True)
+
+        # TITLE
+        title_elem = soup.select_one(".tit")
+        if title_elem is not None:
+            self.title = title_elem.get_text(strip=True)
+
+        # DROPHEAD
+        drophead_elem = soup.select_one(".baj")
+        if drophead_elem is not None:
+            drophead_html = drophead_elem.decode_contents(formatter="html")
+            self.drophead = self.parser.handle(drophead_html).strip()
+
+        # EXCERPT
+        # BODY
+        body_elem = soup.select_one(".CUERPO")
+        if body_elem is not None:
+            for elem in body_elem.find_all("iframe"):
+                elem.decompose()
+            for elem in body_elem.find_all("script"):
+                elem.decompose()
+            for elem in body_elem.find_all("blockquote"):
+                elem.decompose()
+
+            body_html = body_elem.decode_contents(formatter="html")
+            self.body = self.parser.handle(body_html).strip()
+            self.bodyHTML = body_html
