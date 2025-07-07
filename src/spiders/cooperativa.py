@@ -32,7 +32,7 @@ class Cooperativa:
             urls = [item for sublist in block_urls for item in sublist]
 
             papers = await self.async_get_papers(session, urls)
-            all_papers.extend(filter(lambda p: p is not None, papers))
+            all_papers.extend(filter(lambda p: (p is not None) and (p.date >= start_date and p.date <= end_date), papers))
 
         end_time = time.time()
         self.logger.info(f"{self.SITE_NAME}: {end_time - start_time} segundos")
