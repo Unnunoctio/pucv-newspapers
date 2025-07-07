@@ -134,6 +134,8 @@ class Paper:
                 elem.decompose()
             for elem in body_elem.find_all("blockquote"):
                 elem.decompose()
+            for elem in body_elem.find_all("div", class_="prontus-card-container"):
+                elem.decompose()
 
             body_html = body_elem.decode_contents(formatter="html")
             self.body = self.parser.handle(body_html).strip()
