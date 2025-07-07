@@ -3,6 +3,7 @@ import logging
 
 from services.excel_exporter import ExcelExporter
 from spiders.cooperativa import Cooperativa
+from spiders.el_mostrador import ElMostrador
 from spiders.tvn import Tvn
 from utils.date_utils import DateUtils
 from utils.file_utils import FileUtils
@@ -38,8 +39,9 @@ class ScraperRun:
         self.spiders = []
         all_spiders = [
             Cooperativa(),
+            ElMostrador(),
+            Tvn(site_name="TVN_ACTUALIDAD", base_url="https://www.tvn.cl/noticias/actualidad"),
             Tvn(site_name="TVN_NOTICIAS", base_url="https://www.tvn.cl/noticias"),
-            Tvn(site_name="TVN_ACTUALIDAD", base_url="https://www.tvn.cl/noticias/actualidad")
         ]
 
         for spider in all_spiders:

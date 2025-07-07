@@ -88,6 +88,66 @@ class Paper:
             self.body = self.parser.handle(body_html).strip()
             self.bodyHTML = body_html
 
+    def set_el_mostrador_data(self, data: str) -> None:
+        soup = BeautifulSoup(data, "html.parser")
+
+        # AUTHOR
+        if soup.select_one(".the-by__permalink"):
+            author_elem = soup.select_one(".the-by__permalink")
+            if author_elem is not None:
+                self.author = author_elem.get_text(strip=True)
+        elif soup.select_one(".the-single-author__permalink"):
+            author_elem = soup.select_one(".the-single-author__permalink")
+            if author_elem is not None:
+                self.author = author_elem.get_text(strip=True)
+                if soup.select_one(".the-single-author__subtitle"):
+                    author_subtitle_elem = soup.select_one(".the-single-author__subtitle")
+                    if author_subtitle_elem is not None:
+                        author_subtitle = author_subtitle_elem.get_text(strip=True)
+                        if author_subtitle != "":
+                            self.author = f"{self.author}, {author_subtitle}"
+        
+        # DATE (yyyy-mm-dd)
+        date_elem = soup.select_one(".d-the-single__date")
+        if date_elem is not None:
+            date_str = date_elem.get("datetime")
+            if date_str is not None:
+                self.date = datetime.strptime(date_str, "%Y-%m-%d")
+        
+        # TAG
+        tag_elem = soup.select_one(".d-the-single-media__bag")
+        if tag_elem is not None:
+            self.tag = tag_elem.get_text(strip=True)
+
+        # TITLE
+        title_elem = soup.select_one(".d-the-single__title")
+        if title_elem is not None:
+            self.title = title_elem.get_text(strip=True)
+
+        # DROPHEAD
+        # EXCERPT
+        excerpt_elem = soup.select_one(".d-the-single__excerpt")
+        if excerpt_elem is not None:
+            self.excerpt = excerpt_elem.get_text(strip=True)
+
+        # BODY
+        body_elem = soup.select_one(".d-the-single-wrapper__text")
+        if body_elem is not None:
+            for elem in body_elem.find_all("iframe"):
+                elem.decompose()
+            for elem in body_elem.find_all("script"):
+                elem.decompose()
+            for elem in body_elem.find_all("blockquote"):
+                elem.decompose()
+            for elem in body_elem.find_all("div", class_="responsive-container"):
+                elem.decompose()
+            for elem in body_elem.find_all("div", class_="the-single-cards"):
+                elem.decompose()
+
+            body_html = body_elem.decode_contents(formatter="html")
+            self.body = self.parser.handle(body_html).strip()
+            self.bodyHTML = body_html
+
     def set_tvn_data(self, data: str) -> None:
         soup = BeautifulSoup(data, "html.parser")
 
