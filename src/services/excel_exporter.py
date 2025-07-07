@@ -6,6 +6,7 @@ from datetime import datetime
 from openpyxl import Workbook
 
 from classes.paper import Paper
+import re
 
 
 class ExcelExporter:
@@ -18,6 +19,13 @@ class ExcelExporter:
         # Configure logging
         logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
         self.logger = logging.getLogger(__name__)
+
+    def clean_html_to_excel(self, html: str) -> str:
+        if not html:
+            return ""
+        
+        html = re.sub(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]', '', html)
+        return html
 
     def group_by_newspaper(self):
         grouped = defaultdict(list)
@@ -39,7 +47,7 @@ class ExcelExporter:
 
             papers_sorted = sorted(papers, key=lambda p: p.date or datetime.min)
             for paper in papers_sorted:
-                ws.append([paper.newspaper, paper.url, paper.author or "", paper.date.strftime("%d-%m-%Y") if paper.date else "", paper.tag or "", paper.title or "", paper.drophead or "", paper.excerpt or "", paper.body or "", paper.bodyHTML or ""])
+                ws.append([paper.newspaper, paper.url, paper.author or "", paper.date.strftime("%d-%m-%Y") if paper.date else "", paper.tag or "", paper.title or "", paper.drophead or "", paper.excerpt or "", paper.body or "", self.clean_html_to_excel(paper.bodyHTML) or ""])
 
         try:
             wb.save(self.file_path)
