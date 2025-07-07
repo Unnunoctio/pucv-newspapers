@@ -10,10 +10,10 @@ from classes.paper import Paper
 from services.web_fetcher import WebFetcher
 
 
-class TvnNoticias:
-    def __init__(self):
-        self.SITE_NAME = "TVN_NOTICIAS"
-        self.BASE_URL = "https://www.tvn.cl/noticias"
+class Tvn:
+    def __init__(self, site_name: str, base_url: str):
+        self.SITE_NAME = site_name
+        self.BASE_URL = base_url
         self.PAPER_BASE_URL = "https://www.tvn.cl"
         self.fetcher = WebFetcher(delay=5, max_concurrent=10)
 
@@ -50,7 +50,7 @@ class TvnNoticias:
         page_items = soup.select(".auxi .wp-pagenavi a")
 
         last_page_url = page_items[-1].get("href")
-        return int(last_page_url.split("/")[3])
+        return int(last_page_url.split("/")[-1])
 
     def generate_pages(self, start_page: int, end_page: int) -> list[str]:
         return [f"{self.BASE_URL}/p/{page}/" for page in range(start_page, end_page + 1)]
