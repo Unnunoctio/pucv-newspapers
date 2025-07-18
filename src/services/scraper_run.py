@@ -1,9 +1,12 @@
 import asyncio
 import logging
+import time
+import math
 
 from services.excel_exporter import ExcelExporter
 from spiders.cooperativa import Cooperativa
 from spiders.el_mostrador import ElMostrador
+from spiders.emol import Emol
 from spiders.tvn import Tvn
 from utils.date_utils import DateUtils
 from utils.file_utils import FileUtils
@@ -14,14 +17,8 @@ class ScraperRun:
         # Configure logging
         logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
         self.logger = logging.getLogger(__name__)
-
+        
         # Validate dates
-        self._validate_dates(start_date, end_date)
-
-        # Set spiders
-        self._set_spiders(spiders_to_run)
-
-    def _validate_dates(self, start_date: str, end_date: str) -> None:
         try:
             start_date_dt = DateUtils.validate_date(start_date, "La fecha de inicio no es válida")
             end_date_dt = DateUtils.validate_date(end_date, "La fecha de fin no es válida")
@@ -35,11 +32,12 @@ class ScraperRun:
             self.logger.error(e)
             exit(1)
 
-    def _set_spiders(self, spiders_to_run: dict) -> None:
+        # Set spiders
         self.spiders = []
         all_spiders = [
             Cooperativa(),
             ElMostrador(),
+            Emol(),
             Tvn(site_name="TVN_ACTUALIDAD", base_url="https://www.tvn.cl/noticias/actualidad"),
             Tvn(site_name="TVN_NOTICIAS", base_url="https://www.tvn.cl/noticias"),
         ]
@@ -50,22 +48,45 @@ class ScraperRun:
                     if value:
                         self.spiders.append(spider)
 
+        # Initialize stats
+        self.stats = []
+
     def run(self) -> None:
         self.papers = []
         for spider in self.spiders:
+            start_time = time.time()
             spider_papers = asyncio.run(spider.run(self.start_date, self.end_date))
+            end_time = time.time()
+            self.logger.info(f"{spider.SITE_NAME}: {self._print_time(end_time - start_time)}")
+            print("")
+
+            self.stats.append({
+                "SITE_NAME": spider.SITE_NAME,
+                "PAPERS": len(spider_papers),
+                "TIME": end_time - start_time
+            })
             self.papers.extend(spider_papers)
 
         self._print_stats()
         self._save_papers()
 
+    def _print_time(self, time: float) -> str:
+        hours = math.floor(time / 3600)
+        minutes = math.floor((time % 3600) / 60)
+        seconds = math.floor(time % 60)
+
+        return f"{hours:02d}h:{minutes:02d}m:{seconds:02d}s | (hh:mm:ss)"
+
     def _print_stats(self) -> None:
         print("")
         self.logger.info("-------------------------------------------------------------------")
-        self.logger.info("Cantidad total de noticias obtenidas:")
-        for spider in self.spiders:
-            papers_by_site = [p for p in self.papers if p.newspaper == spider.SITE_NAME]
-            self.logger.info(f"{spider.SITE_NAME}: {len(papers_by_site)}")
+        self.logger.info("Estadísticas de los spiders:")
+        for stat in self.stats:
+            self.logger.info("---------------------------------------")
+            self.logger.info(f"\tSite: {stat['SITE_NAME']}")
+            self.logger.info(f"\tPapers: {stat['PAPERS']}")
+            self.logger.info(f"\tTiempo: {self._print_time(stat['TIME'])}")
+        self.logger.info("---------------------------------------")
 
     def _save_papers(self) -> None:
         print("")

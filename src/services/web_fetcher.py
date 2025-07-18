@@ -48,14 +48,16 @@ class WebFetcher:
         except Exception as e:
             return self._handle_retry_page(url, delay, retries, e)
 
-    def fetch_json(self, url: str, delay: int = None, retries: int = 0) -> Optional[dict]:
+    def fetch_json(self, url: str, delay: int = None, retries: int = 0, is_success: bool = False) -> Optional[dict]:
         if delay is None:
             delay = self.DELAY
 
         try:
             res = requests.get(url, headers=self.headers, timeout=30)
             res.raise_for_status()
-
+            
+            if is_success:
+                self.logger.info(f"OK for URL: {url}")
             return res.json()
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 404:
@@ -79,7 +81,7 @@ class WebFetcher:
         if retries < self.MAX_RETRIES:
             self.logger.warning(f"RETRY {retries + 1} for URL: {url}")
             self.sleep(delay)
-            return self.fetch_json(url, delay, retries + 1)
+            return self.fetch_json(url, delay, retries + 1, is_success=True)
         else:
             self.logger.error(f"FAILED fetch after {self.MAX_RETRIES} for URL: {url}")
             return None
@@ -107,7 +109,7 @@ class WebFetcher:
             except Exception as e:
                 return await self._async_handle_retry_page(session, url, delay, retries, e)
 
-    async def async_fetch_json(self, session: aiohttp.ClientSession, url: str, delay: int = None, retries: int = 0) -> Optional[dict]:
+    async def async_fetch_json(self, session: aiohttp.ClientSession, url: str, delay: int = None, retries: int = 0, is_success: bool = False) -> Optional[dict]:
         if delay is None:
             delay = self.DELAY
 
@@ -119,8 +121,10 @@ class WebFetcher:
                         return None
 
                     response.raise_for_status()
-                    return await response.json()
 
+                    if is_success:
+                        self.logger.info(f"OK for URL: {url}")
+                    return await response.json()
             except aiohttp.ClientError as e:
                 return await self._async_handle_retry_json(session, url, delay, retries, e)
             except Exception as e:

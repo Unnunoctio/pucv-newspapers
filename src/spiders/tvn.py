@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import time
 from datetime import datetime
 
 import aiohttp
@@ -23,7 +22,6 @@ class Tvn:
 
     async def run(self, start_date: datetime, end_date: datetime) -> list[Paper]:
         self.logger.info(f"Obteniendo noticias desde {self.SITE_NAME}...")
-        start_time = time.time()
 
         total_pages = self.get_total_pages()
         pages = self.generate_pages(1, total_pages)
@@ -37,8 +35,6 @@ class Tvn:
             papers = await self.async_get_papers(session, urls)
             all_papers.extend(filter(lambda p: p is not None, papers))
 
-        end_time = time.time()
-        self.logger.info(f"{self.SITE_NAME}: {end_time - start_time} segundos")
         return all_papers
 
     def get_total_pages(self) -> int:

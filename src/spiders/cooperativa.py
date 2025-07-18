@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import time
 from datetime import datetime, timedelta
 
 import aiohttp
@@ -23,7 +22,6 @@ class Cooperativa:
 
     async def run(self, start_date: datetime, end_date: datetime) -> list[Paper]:
         self.logger.info(f"Obteniendo noticias desde {self.SITE_NAME}...")
-        start_time = time.time()
 
         pages = self.generate_pages(start_date, end_date)
         all_papers = []
@@ -34,8 +32,6 @@ class Cooperativa:
             papers = await self.async_get_papers(session, urls)
             all_papers.extend(filter(lambda p: (p is not None) and (p.date >= start_date and p.date <= end_date), papers))
 
-        end_time = time.time()
-        self.logger.info(f"{self.SITE_NAME}: {end_time - start_time} segundos")
         return all_papers
 
     def generate_pages(self, start_date: datetime, end_date: datetime) -> list[str]:
@@ -60,6 +56,8 @@ class Cooperativa:
         soup = BeautifulSoup(body, "html.parser")
 
         links = soup.select(".art-todas a")
+        if len(links) == 0:
+            links = soup.select(".tdd .bloque-tit-fh h2 a")
         urls = set()
         for elem in links:
             paper_url = elem.get("href")

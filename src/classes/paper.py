@@ -106,14 +106,14 @@ class Paper:
                         author_subtitle = author_subtitle_elem.get_text(strip=True)
                         if author_subtitle != "":
                             self.author = f"{self.author}, {author_subtitle}"
-        
+
         # DATE (yyyy-mm-dd)
         date_elem = soup.select_one(".d-the-single__date")
         if date_elem is not None:
             date_str = date_elem.get("datetime")
             if date_str is not None:
                 self.date = datetime.strptime(date_str, "%Y-%m-%d")
-        
+
         # TAG
         tag_elem = soup.select_one(".d-the-single-media__bag")
         if tag_elem is not None:
@@ -147,6 +147,36 @@ class Paper:
             body_html = body_elem.decode_contents(formatter="html")
             self.body = self.parser.handle(body_html).strip()
             self.bodyHTML = body_html
+
+    def set_emol_data(self, data: dict) -> None:
+        # AUTHOR
+        if data["autor"] is not None:
+            self.author = data["autor"]
+
+        # DATE
+        if data["fechaPublicacion"] is not None:
+            date = data["fechaPublicacion"].split("T")[0]
+            self.date = datetime.strptime(date, "%Y-%m-%d")
+
+        # TAG
+        if data["subSeccion"] is not None:
+            self.tag = data["subSeccion"]
+        elif data["seccion"] is not None:
+            self.tag = data["seccion"]
+
+        # TITLE
+        if data["titulo"] is not None:
+            self.title = data["titulo"]
+
+        # DROPHEAD
+        if data["bajada"] is not None and len(data["bajada"]) > 0:
+            self.drophead = data["bajada"][0]["texto"]
+
+        # EXCERPT
+        # BODY
+        if data["texto"] is not None:
+            self.body = self.parser.handle(data["texto"]).strip()
+            self.bodyHTML = data["texto"]
 
     def set_tvn_data(self, data: str) -> None:
         soup = BeautifulSoup(data, "html.parser")

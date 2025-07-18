@@ -1,10 +1,9 @@
+import asyncio
 import logging
 import math
-import time
 from datetime import datetime
 
 import aiohttp
-import asyncio
 from bs4 import BeautifulSoup
 
 from classes.paper import Paper
@@ -24,15 +23,14 @@ class ElMostrador:
 
     async def run(self, start_date: datetime, end_date: datetime) -> list[Paper]:
         self.logger.info(f"Obteniendo noticias desde {self.SITE_NAME}...")
-        start_time = time.time()
 
         total_pages = self.get_total_pages()
         start_page = self.get_start_page(start_date, 1, total_pages)
         end_page = self.get_end_page(end_date, 1, start_page)
-        
+
         pages = self.generate_pages(start_page, end_page)
         pages.reverse()
-        
+
         all_papers = []
         async with aiohttp.ClientSession() as session:
             block_urls = await self.async_get_papers_urls(session, pages)
@@ -41,8 +39,6 @@ class ElMostrador:
             papers = await self.async_get_papers(session, urls)
             all_papers.extend(filter(lambda p: (p is not None) and (p.date >= start_date and p.date <= end_date), papers))
 
-        end_time = time.time()
-        self.logger.info(f"{self.SITE_NAME}: {end_time - start_time} segundos")
         return all_papers
 
     def get_total_pages(self) -> int:
@@ -65,7 +61,7 @@ class ElMostrador:
         body = self.fetcher.fetch_page(f"{self.BASE_URL}page/{mid_page}/")
         if body is None:
             return self.get_start_page(start_date, start_page + 1, end_page)
-        
+
         soup = BeautifulSoup(body, "html.parser")
         page_items = soup.select(".d-section__body .d-tag-card .d-tag-card__date")
         # DATE (dd-mm-yyyy)
@@ -89,7 +85,7 @@ class ElMostrador:
         body = self.fetcher.fetch_page(f"{self.BASE_URL}page/{mid_page}/")
         if body is None:
             return self.get_end_page(end_date, start_page, end_page - 1)
-        
+
         soup = BeautifulSoup(body, "html.parser")
         page_items = soup.select(".d-section__body .d-tag-card .d-tag-card__date")
         # DATE (dd-mm-yyyy)
@@ -103,19 +99,19 @@ class ElMostrador:
             return self.get_end_page(end_date, mid_page, end_page)
         else:
             return self.get_end_page(end_date, start_page, mid_page)
-        
+
     def generate_pages(self, start_page: int, end_page: int) -> list[str]:
         return [f"{self.BASE_URL}page/{page}/" for page in range(end_page, start_page + 1)]
 
     async def async_get_papers_urls(self, session: aiohttp.ClientSession, pages: list[str]) -> list[list[str]]:
         tasks = [self.async_get_paper_urls(session, page) for page in pages]
         return await asyncio.gather(*tasks, return_exceptions=False)
-    
+
     async def async_get_paper_urls(self, session: aiohttp.ClientSession, page: str) -> list[str]:
         body = await self.fetcher.async_fetch_page(session, page)
         if body is None:
             return []
-        
+
         soup = BeautifulSoup(body, "html.parser")
 
         links = soup.select(".d-section__body .d-tag-card__title .d-tag-card__permalink")
@@ -124,9 +120,9 @@ class ElMostrador:
             paper_url = elem.get("href")
             if paper_url is not None:
                 urls.add(paper_url)
-        
+
         return list(urls)
-    
+
     async def async_get_papers(self, session: aiohttp.ClientSession, urls: list[str]) -> list[Paper]:
         tasks = [self.async_get_paper(session, url) for url in urls]
         return await asyncio.gather(*tasks, return_exceptions=False)
@@ -135,7 +131,7 @@ class ElMostrador:
         body = await self.fetcher.async_fetch_page(session, url, is_success=True)
         if body is None:
             return None
-        
+
         paper = Paper(self.SITE_NAME, url)
         paper.set_el_mostrador_data(body)
         return paper

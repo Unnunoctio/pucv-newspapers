@@ -1,12 +1,12 @@
 import logging
 import os
+import re
 from collections import defaultdict
 from datetime import datetime
 
 from openpyxl import Workbook
 
 from classes.paper import Paper
-import re
 
 
 class ExcelExporter:
@@ -23,8 +23,8 @@ class ExcelExporter:
     def clean_html_to_excel(self, html: str) -> str:
         if not html:
             return ""
-        
-        html = re.sub(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]', '', html)
+
+        html = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]", "", html)
         return html
 
     def group_by_newspaper(self):
