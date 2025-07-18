@@ -81,6 +81,11 @@ class Tvn:
         if body is None:
             return None
 
-        paper = Paper(self.SITE_NAME, url)
-        paper.set_tvn_data(body)
-        return paper
+        try:
+            paper = Paper(self.SITE_NAME, url)
+            paper.set_tvn_data(body)
+            return paper
+        except Exception as e:
+            self.logger.error("Error al procesar el paper: " + url + "\n" + str(e))
+            return None
+        

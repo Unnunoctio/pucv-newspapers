@@ -98,8 +98,12 @@ class Emol:
         papers = []
         hits = data["hits"]["hits"]
         for hit in hits:
-            paper = Paper(self.SITE_NAME, hit["_source"]["permalink"])
-            paper.set_emol_data(hit["_source"])
-            papers.append(paper)
+            try:
+                paper = Paper(self.SITE_NAME, hit["_source"]["permalink"])
+                paper.set_emol_data(hit["_source"])
+                papers.append(paper)
+            except Exception as e:
+                self.logger.error("Error al procesar el paper: " + url + "\n" + str(e))
+                continue
 
         return papers
