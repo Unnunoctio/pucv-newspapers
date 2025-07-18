@@ -178,6 +178,56 @@ class Paper:
             self.body = self.parser.handle(data["texto"]).strip()
             self.bodyHTML = data["texto"]
 
+    def set_radio_uchile_data(self, data: str) -> None:
+        soup = BeautifulSoup(data, "html.parser")
+        
+        # AUTHOR
+        # Post como columna de opinion
+        author_elem = soup.select_one(".main-content ol.breadcrumb li.breadcrumb-item a")
+        if author_elem is not None:
+            self.author = author_elem.get_text(strip=True)
+        else:
+            # Cualquier otro post
+            author_elem = soup.select(".post-header ul.meta li")
+            if author_elem is not None:
+                self.author = author_elem[0].get_text(strip=True)
+
+        # DATE (dd-mm-yyyy)
+        date_elem = soup.select(".post-header ul.meta li")
+        if date_elem is not None:
+            date_str = date_elem[-1].get_text(strip=True)
+            self.date = datetime.strptime(date_str, "%d-%m-%Y")
+
+        # TAG
+        tag_elem = soup.select(".post-bottom a.tag")
+        if tag_elem is not None and len(tag_elem) > 0:
+            self.tag = tag_elem[-1].get_text(strip=True)
+
+        # TITLE
+        title_elem = soup.select_one(".post-header h1.title")
+        if title_elem is not None:
+            self.title = title_elem.get_text(strip=True)
+        
+        # DROPHEAD
+        drophead_elem = soup.select_one(".post-header span.title")
+        if drophead_elem is not None:
+            self.drophead = drophead_elem.get_text(strip=True)
+        
+        # EXCERPT
+        # BODY
+        body_elem = soup.select_one(".main-content .post-content")
+        if body_elem is not None:
+            for elem in body_elem.find_all("iframe"):
+                elem.decompose()
+            for elem in body_elem.find_all("script"):
+                elem.decompose()
+            for elem in body_elem.find_all("blockquote"):
+                elem.decompose()
+        
+            body_html = body_elem.decode_contents(formatter="html")
+            self.body = self.parser.handle(body_html).strip()
+            self.bodyHTML = body_html
+
     def set_tvn_data(self, data: str) -> None:
         soup = BeautifulSoup(data, "html.parser")
 
