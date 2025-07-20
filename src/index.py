@@ -7,11 +7,12 @@ SPIDERS_TO_RUN = {
     "EMOL": False,
     "TVN_NOTICIAS": False,
     "TVN_ACTUALIDAD": False,
-    "RADIO_UCHILE": True,
+    "RADIO_UCHILE": False,
+    "EL_DESCONCIERTO": True,
 }
 
 # Formato de fecha: dd-mm-yyyy
-START_DATE = "01-01-2023"
+START_DATE = "12-01-2023"
 END_DATE = "30-04-2023"
 
 # Start System

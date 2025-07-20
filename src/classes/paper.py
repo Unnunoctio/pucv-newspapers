@@ -88,6 +88,18 @@ class Paper:
             self.body = self.parser.handle(body_html).strip()
             self.bodyHTML = body_html
 
+    def set_el_desconcierto_data(self, data: str) -> None:
+        soup = BeautifulSoup(data, "html.parser")
+
+        # AUTHOR
+        # DATE
+        # TAG
+        # TITLE
+        # DROPHEAD
+        # EXCERPT
+        # BODY
+        pass
+
     def set_el_mostrador_data(self, data: str) -> None:
         soup = BeautifulSoup(data, "html.parser")
 
