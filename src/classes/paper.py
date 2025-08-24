@@ -92,13 +92,43 @@ class Paper:
         soup = BeautifulSoup(data, "html.parser")
 
         # AUTHOR
-        # DATE
+        author_elems = soup.select("article div.px-10.py-6.text-sm.font-normal.text-gray-600 span")
+        if len(author_elems) > 0:
+            self.author = author_elems[0].get_text(strip=True)
+            # DATE
+            self.date = datetime.strptime(author_elems[1].get_text(strip=True), "%d.%m.%Y")
+        
         # TAG
+        tag_elems = soup.select("div.flex.items-center.px-4.text-gray-400 span")
+        if len(tag_elems) > 0:
+            self.tag = tag_elems[-1].get_text(strip=True)
+
         # TITLE
+        title_elem = soup.select_one("h1.text-xl.font-bold.text-white")
+        if title_elem is not None:
+            self.title = title_elem.get_text(strip=True)
+        
         # DROPHEAD
         # EXCERPT
+        excerpt_elem = soup.select_one("article div.px-10.py-6.text-lg.text-gray-700.bg-gray-100.border-l-4.border-brand-300")
+        if excerpt_elem is not None:
+            self.excerpt = excerpt_elem.get_text(strip=True)
+        
         # BODY
-        pass
+        body_elem = soup.select_one("article div.single-post__content")
+        if body_elem:
+            for elem in body_elem.find_all("iframe"):
+                elem.decompose()
+            for elem in body_elem.find_all("script"):
+                elem.decompose()
+            for elem in body_elem.find_all("blockquote"):
+                elem.decompose()
+            for elem in body_elem.find_all("div"):
+                elem.decompose()
+
+            body_html = body_elem.decode_contents(formatter="html")
+            self.body = self.parser.handle(body_html).strip()
+            self.bodyHTML = body_html
 
     def set_el_mostrador_data(self, data: str) -> None:
         soup = BeautifulSoup(data, "html.parser")

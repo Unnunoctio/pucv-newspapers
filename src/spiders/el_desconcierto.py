@@ -49,7 +49,8 @@ class ElDesconcierto:
                 urls = [item for sublist in block_urls for item in sublist]
 
                 papers = await self.async_get_papers(session, urls)
-                all_papers.extend(filter(lambda p: (p is not None) and (p.date >= start_date and p.date <= end_date), papers))
+                # all_papers.extend(filter(lambda p: (p is not None) and (p.date >= start_date and p.date <= end_date), papers))
+                all_papers.extend(filter(lambda p: (p is not None), papers))
         
         return all_papers
     

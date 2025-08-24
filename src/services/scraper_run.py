@@ -10,6 +10,7 @@ from spiders.el_mostrador import ElMostrador
 from spiders.emol import Emol
 from spiders.radio_uchile import RadioUChile
 from spiders.tvn import Tvn
+from spiders.adn_radio import ADNRadio
 from utils.date_utils import DateUtils
 from utils.file_utils import FileUtils
 
@@ -44,6 +45,7 @@ class ScraperRun:
             Tvn(site_name="TVN_NOTICIAS", base_url="https://www.tvn.cl/noticias"),
             RadioUChile(),
             ElDesconcierto(),
+            ADNRadio(),
         ]
 
         for spider in all_spiders:
