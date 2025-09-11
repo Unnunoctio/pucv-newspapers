@@ -37,6 +37,47 @@ class Paper:
     def __str__(self) -> str:
         return f"PAPER: {self.newspaper} \nURL: {self.url} \nAUTHOR: {self.author} \nDATE: {self.date} \nTAG: {self.tag} \nTITLE: {self.title} \nDROPHEAD: {self.drophead} \nEXPERT: {self.excerpt} \nBODY: {self.body}"
 
+    async def set_adn_radio_data(self, data_page) -> None:
+        # AUTHOR
+        author_elem = await data_page.query_selector("article header div.cnt-byline a")
+        if author_elem is not None:
+            self.author = await author_elem.inner_text()
+        # DATE
+        date_elem = await data_page.query_selector("article header div.cnt-byline time")
+        if date_elem is not None:
+            date_datetime = await date_elem.get_attribute("datetime")
+            date_str = date_datetime.split("T")[0]
+            self.date = datetime.strptime(date_str, "%Y-%m-%d")
+        # TAG
+        # TITLE
+        title_elem = await data_page.query_selector("article header h1")
+        if title_elem is not None:
+            self.title = await title_elem.inner_text()
+        # DROPHEAD
+        drophead_elem = await data_page.query_selector("article header h2")
+        if drophead_elem is not None:
+            self.drophead = await drophead_elem.inner_text()
+        # EXCERPT
+        # BODY
+        soup = BeautifulSoup(await data_page.content(), "html.parser")
+
+        body_elem = soup.select_one("article div.cnt-data-art div.cnt-txt")
+        if body_elem is not None:
+            for elem in body_elem.find_all("iframe"):
+                elem.decompose()
+            for elem in body_elem.find_all("script"):
+                elem.decompose()
+            for elem in body_elem.find_all("blockquote"):
+                elem.decompose()
+            for elem in body_elem.find_all("section"):
+                elem.decompose()
+            for elem in body_elem.find_all("div"):
+                elem.decompose()
+
+            body_html = body_elem.decode_contents(formatter="html")
+            self.body = self.parser.handle(body_html).strip()
+            self.bodyHTML = body_html
+
     def set_cooperativa_data(self, data: str) -> None:
         soup = BeautifulSoup(data, "html.parser")
 
@@ -97,7 +138,7 @@ class Paper:
             self.author = author_elems[0].get_text(strip=True)
             # DATE
             self.date = datetime.strptime(author_elems[1].get_text(strip=True), "%d.%m.%Y")
-        
+
         # TAG
         tag_elems = soup.select("div.flex.items-center.px-4.text-gray-400 span")
         if len(tag_elems) > 0:
@@ -107,13 +148,15 @@ class Paper:
         title_elem = soup.select_one("h1.text-xl.font-bold.text-white")
         if title_elem is not None:
             self.title = title_elem.get_text(strip=True)
-        
+
         # DROPHEAD
         # EXCERPT
-        excerpt_elem = soup.select_one("article div.px-10.py-6.text-lg.text-gray-700.bg-gray-100.border-l-4.border-brand-300")
+        excerpt_elem = soup.select_one(
+            "article div.px-10.py-6.text-lg.text-gray-700.bg-gray-100.border-l-4.border-brand-300"
+        )
         if excerpt_elem is not None:
             self.excerpt = excerpt_elem.get_text(strip=True)
-        
+
         # BODY
         body_elem = soup.select_one("article div.single-post__content")
         if body_elem:
@@ -222,7 +265,7 @@ class Paper:
 
     def set_radio_uchile_data(self, data: str) -> None:
         soup = BeautifulSoup(data, "html.parser")
-        
+
         # AUTHOR
         # Post como columna de opinion
         author_elem = soup.select_one(".main-content ol.breadcrumb li.breadcrumb-item a")
@@ -249,12 +292,12 @@ class Paper:
         title_elem = soup.select_one(".post-header h1.title")
         if title_elem is not None:
             self.title = title_elem.get_text(strip=True)
-        
+
         # DROPHEAD
         drophead_elem = soup.select_one(".post-header span.title")
         if drophead_elem is not None:
             self.drophead = drophead_elem.get_text(strip=True)
-        
+
         # EXCERPT
         # BODY
         body_elem = soup.select_one(".main-content .post-content")
@@ -265,7 +308,7 @@ class Paper:
                 elem.decompose()
             for elem in body_elem.find_all("blockquote"):
                 elem.decompose()
-        
+
             body_html = body_elem.decode_contents(formatter="html")
             self.body = self.parser.handle(body_html).strip()
             self.bodyHTML = body_html
@@ -287,7 +330,20 @@ class Paper:
             date_str = date_elem.get_text(strip=True)
             date_split = date_str.split(" ")
 
-            months = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"]
+            months = [
+                "enero",
+                "febrero",
+                "marzo",
+                "abril",
+                "mayo",
+                "junio",
+                "julio",
+                "agosto",
+                "septiembre",
+                "octubre",
+                "noviembre",
+                "diciembre",
+            ]
             self.date = datetime(int(date_split[5]), months.index(date_split[3]) + 1, int(date_split[1]))
 
         # TAG

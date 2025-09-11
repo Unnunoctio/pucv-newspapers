@@ -6,8 +6,8 @@ import aiohttp
 from bs4 import BeautifulSoup
 
 from classes.paper import Paper
-# from services.web_fetcher import WebFetcher
-from services.WebFetcherV2 import WebFetcherV2
+from services.web_fetcher import WebFetcher
+# from services.WebFetcherV2 import WebFetcherV2
 
 
 class Cooperativa:
@@ -15,7 +15,7 @@ class Cooperativa:
         self.SITE_NAME = "COOPERATIVA"
         self.BASE_URL = "https://www.cooperativa.cl"
         self.PAGE_BASE_URL = "https://www.cooperativa.cl/noticias/site/cache/nroedic/todas/"
-        # self.fetcher = WebFetcher(delay=5, max_concurrent=10)
+        self.fetcher = WebFetcher(delay=5, max_concurrent=10)
 
         # Configure logging
         logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -24,7 +24,7 @@ class Cooperativa:
     async def run(self, start_date: datetime, end_date: datetime) -> list[Paper]:
         self.logger.info(f"Obteniendo noticias desde {self.SITE_NAME}...")
 
-        pages = self.generate_pages(fetcher, start_date, end_date)
+        pages = self.generate_pages(start_date, end_date)
         all_papers = []
         async with aiohttp.ClientSession() as session:
             block_urls = await self.async_get_papers_urls(session, pages)
@@ -35,7 +35,7 @@ class Cooperativa:
 
         return all_papers
 
-    def generate_pages(self, fetcher:  start_date: datetime, end_date: datetime) -> list[str]:
+    def generate_pages(self, start_date: datetime, end_date: datetime) -> list[str]:
         pages = []
         i_date = start_date
         while i_date <= end_date:
