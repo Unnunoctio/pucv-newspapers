@@ -1,0 +1,120 @@
+crawlers:
+  - name: COOPERATIVA
+    type: STATIC_WEBSITE
+    custom: COOPERATIVA
+    base_urls:
+      - https://www.cooperativa.cl
+    pages_config:
+      url_pattern: (\s+)/noticias/site/cache/nroedic/todas/(\d+).html
+    
+    articles_list_config:
+      selector: .art-todas
+      url:
+        selector: a
+
+  - name: EL_DESCONCIERTO
+    type: STATIC_WEBSITE
+    base_urls:
+      - https://eldesconcierto.cl/noticias
+      - https://eldesconcierto.cl/opinion
+      - https://eldesconcierto.cl/politica
+      - https://eldesconcierto.cl/reportajes
+    pages_config:
+      url_pattern: (\s+)?page=(\d+)
+      pagination:
+        selector: ul.pagination li a
+        pos_pagination_item: -2
+        split_href: ?page=
+        pos_href: -1
+    
+    articles_list_config:
+      selector: article
+      datetime:
+        selector: span.leading-tight:nth-child(2)
+        format: "%d.%m.%Y"
+      url:
+        selector: a
+        prefix: https://eldesconcierto.cl
+
+  - name: EL_MOSTRADOR
+    type: STATIC_WEBSITE
+    base_urls:
+      - https://www.elmostrador.cl
+    pages_config:
+      url_pattern: (\s+)/categoria/dia/page/(\d+)/
+      pagination:
+        selector: .the-pagination .the-pagination__item
+        pos_pagination_item: -1
+        pos_href: 6
+    
+    articles_list_config:
+      selector: .d-section__body .d-tag-card
+      datetime:
+        selector: .d-tag-card__date
+        attribute: datetime
+        format: "%d-%m-%Y"
+      url:
+        selector: .d-tag-card__title .d-tag-card__permalink
+    
+  - name: RADIO_UCHILE
+    type: STATIC_WEBSITE
+    base_urls:
+      - https://radio.uchile.cl
+    pages_config:
+      url_pattern: (\s+)/noticias/page/(\d+)/
+      pagination:
+        selector: .pagination li a.page-numbers
+        pos_pagination_item: -2
+        pos_href: -2
+    
+    articles_list_config:
+      selector: .post
+      datetime:
+        selector: ul.meta li:nth-child(2)
+        format: "%d-%m-%Y"
+      url:
+        selector: .details .post-title a
+  
+  - name: TVN_ACTUALIDAD
+    type: STATIC_WEBSITE
+    custom: TVN
+    base_urls: 
+      - https://www.tvn.cl
+    pages_config:
+      url_pattern: (\s+)/noticias/actualidad/p/(\d+)/
+      pagination:
+        selector: .auxi .wp-pagenavi a
+        pos_pagination_item: -1
+        pos_href: -1
+    
+    articles_list_config:
+      selector: .auxi .row article
+      url:
+        selector: a
+        prefix: https://www.tvn.cl
+
+  - name: TVN_NOTICIAS
+    type: STATIC_WEBSITE
+    custom: TVN
+    base_urls:
+      - https://www.tvn.cl
+    pages_config:
+      url_pattern: (\s+)/noticias/p/(\d+)/
+      pagination:
+        selector: .auxi .wp-pagenavi a
+        pos_pagination_item: -1
+        pos_href: -1
+    
+    articles_list_config:
+      selector: .auxi .row article
+      url:
+        selector: a
+        prefix: https://www.tvn.cl
+
+
+
+      
+
+
+
+

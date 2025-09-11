@@ -1,15 +1,15 @@
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Optional
+from typing import Optional, Union
 
 
 class SourceType(Enum):
     """Tipo de fuente de noticias"""
 
-    API = "api"
-    STATIC_WEB = "static_web"
-    DYNAMIC_WEB = "dynamic_web"
+    API = "API"
+    STATIC_WEB = "STATIC_WEB"
+    DYNAMIC_WEB = "DYNAMIC_WEB"
 
 
 class NewspaperType(Enum):
@@ -29,29 +29,35 @@ class NewspaperType(Enum):
 class DateRange:
     """Rango de fechas para filtrar artículos"""
 
-    start_date: datetime
-    end_date: datetime
+    start_date: Union[str, datetime]
+    end_date: Union[str, datetime]
 
     def __post_init__(self):
-        try:
-            datetime.strptime(self.start_date, "%d-%m-%Y")
-            datetime.strptime(self.end_date, "%d-%m-%Y")
-        except ValueError:
-            raise ValueError("Las fechas deben tener el formato DD-MM-YYYY")
+        # Convertir strings a datetime si es necesario
+        if isinstance(self.start_date, str):
+            try:
+                self.start_date = datetime.strptime(self.start_date, "%d-%m-%Y")
+            except ValueError:
+                raise ValueError("La fecha de inicio debe tener el formato DD-MM-YYYY")
 
+        if isinstance(self.end_date, str):
+            try:
+                self.end_date = datetime.strptime(self.end_date, "%d-%m-%Y")
+            except ValueError:
+                raise ValueError("La fecha de fin debe tener el formato DD-MM-YYYY")
+
+        # Obtener fecha actual
         current_date = datetime.now()
+
+        # Validaciones
         if self.start_date > current_date:
-            raise ValueError(
-                "La fecha de inicio debe ser anterior o igual a la fecha actual"
-            )
+            raise ValueError("La fecha de inicio debe ser anterior o igual a la fecha actual")
+
         if self.end_date > current_date:
-            raise ValueError(
-                "La fecha de fin debe ser anterior o igual a la fecha actual"
-            )
+            raise ValueError("La fecha de fin debe ser anterior o igual a la fecha actual")
+
         if self.start_date > self.end_date:
-            raise ValueError(
-                "La fecha de inicio debe ser anterior o igual a la fecha de fin"
-            )
+            raise ValueError("La fecha de inicio debe ser anterior o igual a la fecha de fin")
 
 
 @dataclass
