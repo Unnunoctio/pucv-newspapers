@@ -37,14 +37,22 @@ class DateRange:
         if isinstance(self.start_date, str):
             try:
                 self.start_date = datetime.strptime(self.start_date, "%d-%m-%Y")
-            except ValueError:
-                raise ValueError("La fecha de inicio debe tener el formato DD-MM-YYYY")
+            except ValueError as e:
+                message = str(e)
+                if "time data" and "does not match format" in message:
+                    raise ValueError("La fecha de inicio debe tener el formato DD-MM-YYYY")
+                else:
+                    raise ValueError("La fecha de inicio es invalida")
 
         if isinstance(self.end_date, str):
             try:
                 self.end_date = datetime.strptime(self.end_date, "%d-%m-%Y")
-            except ValueError:
-                raise ValueError("La fecha de fin debe tener el formato DD-MM-YYYY")
+            except ValueError as e:
+                message = str(e)
+                if "time data" and "does not match format" in message:
+                    raise ValueError("La fecha de fin debe tener el formato DD-MM-YYYY")
+                else:
+                    raise ValueError("La fecha de fin es invalida")
 
         # Obtener fecha actual
         current_date = datetime.now()

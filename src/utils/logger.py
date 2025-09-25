@@ -47,7 +47,7 @@ class Logger:
             formatted_prefix = f"[{prefix.upper()}]"
         
         timestamp = cls._get_timestamp()
-        return f"[{timestamp}] | {level.ljust(8)} | {formatted_prefix} {message}"
+        return f"[{timestamp}] | {level.ljust(8)} | {formatted_prefix} : {message}"
     
     @classmethod
     def _write_to_console(cls, level: str, formatted_message: str) -> None:
