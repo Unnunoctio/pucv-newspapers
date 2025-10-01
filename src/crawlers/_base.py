@@ -43,15 +43,15 @@ class BaseCrawler(ABC):
         all_pages = []
 
         for base_url in self.BASE_URLS:
-            pages = self.generate_pages(base_url)
+            pages = await self.generate_pages(base_url)
             all_pages.extend(pages)
-        
+
         articles = await self.get_articles(all_pages)
 
         return articles
-        
+
     @abstractmethod
-    def generate_pages(self, base_url: str) -> List[str]:
+    async def generate_pages(self, base_url: str) -> List[str]:
         """Generate the list of pages to crawl"""
         pass
 

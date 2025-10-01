@@ -1,53 +1,54 @@
-import asyncio
-import time
+from services.crawler_service import CrawlerService
 
-import yaml
+# ?: Definir los periodicos a ejecutar
+CRAWLERS_TO_RUN = {
+    # "ADN_RADIO": False,
+    "COOPERATIVA": True,
+    "EL_DESCONCIERTO": True,
+    "EL_MOSTRADOR": True,
+    # "EMOL": False,
+    "RADIO_UCHILE": True,
+    "TVN_ACTUALIDAD": True,
+    "TVN_NOTICIAS": True,
+}
 
-from core.models import DateRange
-from crawler.custom.cooperativa import CooperativaCrawler
-from crawler.custom.tvn import TVNCrawler
-from crawler.static_website import StaticWebsiteCrawler
-from utils.logger import Logger
+# ?: FORMATO DE FECHAS: DD-MM-YYYY
+START_DATE = "01-01-2016"
+END_DATE = "31-01-2016"
 
-with open("src/crawler/_config.yaml", "r") as f:
-    config = yaml.safe_load(f)
+# ?: Ejecutar el servicio
+crawler_service = CrawlerService(START_DATE, END_DATE, CRAWLERS_TO_RUN)
+crawler_service.run()
 
-crawler_config = config.get("crawlers")[2]
-date_range = DateRange(start_date="01-01-2023", end_date="31-12-2023")
-
-if crawler_config.get("custom") is None:
-    crawler = StaticWebsiteCrawler(crawler_config, date_range)
-elif crawler_config.get("custom") == "TVN":
-    crawler = TVNCrawler(crawler_config, date_range)
-elif crawler_config.get("custom") == "COOPERATIVA":
-    crawler = CooperativaCrawler(crawler_config, date_range)
-else:
-    raise ValueError("Custom crawler not supported")
-
-start = time.time()
-articles = asyncio.run(crawler.crawl())
-end = time.time()
-
-Logger.info(prefix="TIMER", message=f"Tiempo de ejecución: {(end - start):.2f} segundos")
-
-print("------------------")
-print(len(articles))
-# print("------------------")
-# print(articles[0])
-# print("------------------")
-# print(articles[-1])
-
-# from utils.fetcher_manager import FetcherManager as FM
+#! TEST
 # import asyncio
 
-# url = "https://www.elmostrador.cl/categoria/dia/page/1807/"
-# html, status = asyncio.run(FM.async_fetch_html(url, retry_delay=5))
-# print(html)
+# import yaml
+# from bs4 import BeautifulSoup
 
-# from scrapling.fetchers import Fetcher
-# url = "https://radio.uchile.cl/2023/01/04/carmen-romero-directora-de-santiago-a-mil-lo-que-queremos-que-la-gente-pueda-disfrutar-de-este-enero/"
-# html = Fetcher.get(url, proxy="https://198.199.86.11:8080")
-# # print(html.)
-# elem = html.css_first(".post-header ul.meta li:last-child")
-# # date = datetime.strptime(elem.get_all_text(), "%d-%m-%Y")
-# print(elem)
+# from core.models import DateRange
+# from crawlers.generics.static_website import StaticWebsiteCrawler
+# from utils.logger import Logger
+
+# with open("src/config.yaml", "r") as f:
+#     data = yaml.safe_load(f)
+
+# crawler_config = data.get("crawlers")[3]
+# crawler = StaticWebsiteCrawler(crawler_config, DateRange("01-01-2019", "31-12-2019"))
+
+# url = "https://radio.uchile.cl/2019/01/17/diputado-pablo-vidal-y-tpp-11-lo-mas-probable-es-que-este-tratado-sea-aprobado/"
+# html, status = asyncio.run(crawler.FETCHER.fetch_html(url=url))
+
+# soup = BeautifulSoup(html, "html.parser")
+
+# title = soup.select_one("div.post-header h1.title").get_text(strip=True)
+# print(title)
+
+# article = crawler._parse_article(html, url)
+# if article.date is None:
+#     Logger.error("DB", f"No se ha podido obtener los datos de la noticia: {url}")
+# print(article)
+
+# asyncio.run(crawler.FETCHER.close())
+
+

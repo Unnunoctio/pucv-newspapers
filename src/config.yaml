@@ -1,16 +1,48 @@
 crawlers:
   - name: COOPERATIVA
-    type: STATIC_WEBSITE
     custom: COOPERATIVA
     base_urls:
       - https://www.cooperativa.cl
+
+    requests_config:
+      retry_delay: 60 # seconds
+      requests_per_minute: 1800 # 30 per second
+    
     pages_config:
       url_pattern: (\s+)/noticias/site/cache/nroedic/todas/(\d+).html
     
     articles_list_config:
-      selector: .art-todas
+      selectors:
+        - .art-todas
+        - .content .tdd .bloque-tit-fh
       url:
         selector: a
+        prefix: https://www.cooperativa.cl
+    
+    article_config:
+      title:
+        selectors:
+          - h1.titular
+      author:
+        selectors:
+          - .fecha-publicacion div span
+      date:
+        selectors:
+          - .fecha-publicacion time
+      tag:
+        selectors:
+          - .rotulo-topicos a:nth-child(1) span
+      drophead:
+        selectors:
+          - .contenedor-bajada .texto-bajada
+      body:
+        selectors:
+          - .contenedor-cuerpo .texto-bajada .cuerpo-articulo
+        remove_elements:
+          - iframe
+          - script
+          - blockquote
+          - p.prompt
 
   - name: EL_DESCONCIERTO
     type: STATIC_WEBSITE
@@ -22,7 +54,7 @@ crawlers:
 
     requests_config:
       retry_delay: 60 # seconds
-      requests_per_minute: 180
+      requests_per_minute: 900 # 15 per second
 
     pages_config:
       url_pattern: (\s+)?page=(\d+)
@@ -33,7 +65,8 @@ crawlers:
         pos_href: -1
     
     articles_list_config:
-      selector: article
+      selectors:
+        - article
       datetime:
         selector: span.leading-tight:nth-child(2)
         format: "%d.%m.%Y"
@@ -73,8 +106,8 @@ crawlers:
       - https://www.elmostrador.cl
 
     requests_config:
-      retry_delay: 60 # seconds
-      requests_per_minute: 1000
+      retry_delay: 310 # seconds
+      requests_per_minute: 1800 # 30 per second
 
     pages_config:
       url_pattern: (\s+)/categoria/dia/page/(\d+)/
@@ -84,7 +117,8 @@ crawlers:
         pos_href: 6
     
     articles_list_config:
-      selector: .d-tag-card
+      selectors:
+        - .d-tag-card
       datetime:
         selector: .d-tag-card__date
         attribute: datetime
@@ -128,7 +162,7 @@ crawlers:
     
     requests_config:
       retry_delay: 60 # seconds
-      requests_per_minute: 1000
+      requests_per_minute: 1800 # 30 per second
 
     pages_config:
       url_pattern: (\s+)/noticias/page/(\d+)/
@@ -138,7 +172,8 @@ crawlers:
         pos_href: -2
     
     articles_list_config:
-      selector: div.post
+      selectors:
+        - div.post
       datetime:
         selector: ul.meta li:nth-child(2)
         format: "%d-%m-%Y"
@@ -172,15 +207,14 @@ crawlers:
           - blockquote
   
   - name: TVN_ACTUALIDAD
-    type: STATIC_WEBSITE
     custom: TVN
     base_urls: 
       - https://www.tvn.cl
 
     requests_config:
-      request_block_size: 10
-      sleep_between_blocks: 1
-      retry_delay: 5
+      retry_delay: 60 # seconds
+      requests_per_minute: 1800 # 30 per second
+      filter_inside_date_range: false
 
     pages_config:
       url_pattern: (\s+)/noticias/actualidad/p/(\d+)/
@@ -190,21 +224,48 @@ crawlers:
         pos_href: -1
     
     articles_list_config:
-      selector: .auxi .row article
+      selectors:
+        - .auxi .row article
       url:
         selector: a
         prefix: https://www.tvn.cl
+    
+    article_config:
+      title:
+        selectors:
+          - .tit
+      author:
+        selectors:
+          - .cont-credits .author
+      date:
+        selectors:
+          - .toolbar .fecha
+          - .date-video
+      tag:
+        selectors:
+          - .breadcrumbs .breadcrumb:last-child a
+          - .tags .tags__content .tags__tag:last-child
+      drophead:
+        selectors:
+          - .baj
+      body:
+        selectors:
+          - .CUERPO
+        remove_elements:
+          - iframe
+          - script
+          - blockquote
+          - div.prontus-card-container
 
   - name: TVN_NOTICIAS
-    type: STATIC_WEBSITE
     custom: TVN
     base_urls:
       - https://www.tvn.cl
 
     requests_config:
-      request_block_size: 10
-      sleep_between_blocks: 1
-      retry_delay: 5
+      retry_delay: 60 # seconds
+      requests_per_minute: 1800 # 30 per second
+      filter_inside_date_range: false
 
     pages_config:
       url_pattern: (\s+)/noticias/p/(\d+)/
@@ -214,15 +275,35 @@ crawlers:
         pos_href: -1
     
     articles_list_config:
-      selector: .auxi .row article
+      selectors:
+        - .auxi .row article
       url:
         selector: a
         prefix: https://www.tvn.cl
-
-
-
-      
-
-
-
-
+    
+    article_config:
+      title:
+        selectors:
+          - .tit
+      author:
+        selectors:
+          - .cont-credits .author
+      date:
+        selectors:
+          - .toolbar .fecha
+          - .date-video
+      tag:
+        selectors:
+          - .breadcrumbs .breadcrumb:last-child a
+          - .tags .tags__content .tags__tag:last-child
+      drophead:
+        selectors:
+          - .baj
+      body:
+        selectors:
+          - .CUERPO
+        remove_elements:
+          - iframe
+          - script
+          - blockquote
+          - div.prontus-card-container
