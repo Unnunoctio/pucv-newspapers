@@ -50,7 +50,6 @@ class StaticWebsiteCrawler(BaseCrawler):
         url = re.sub(r"\(\\s\+\)", base_url, self.PAGES_CONFIG.get("url_pattern"))
         url = re.sub(r"\(\\d\+\)", str(1), url)
 
-        # html, status = FM.fetch_html(url=url, retry_delay=self.REQUESTS_CONFIG.get("retry_delay"))
         html, status = await self.FETCHER.fetch_html(url=url)
         if status is None or status == 404:
             return 0
@@ -81,7 +80,6 @@ class StaticWebsiteCrawler(BaseCrawler):
         url = re.sub(r"\(\\s\+\)", base_url, self.PAGES_CONFIG.get("url_pattern"))
         url = re.sub(r"\(\\d\+\)", str(mid_page), url)
 
-        # html, status = await FM.async_fetch_html(url=url, retry_delay=self.REQUESTS_CONFIG.get("retry_delay"))
         html, status = await self.FETCHER.fetch_html(url=url)
         if status is None or status == 404:
             return await self._get_range_pages(base_url, start_date, end_date, start_page + 1, end_page)
@@ -145,7 +143,6 @@ class StaticWebsiteCrawler(BaseCrawler):
         url = re.sub(r"\(\\s\+\)", base_url, self.PAGES_CONFIG.get("url_pattern"))
         url = re.sub(r"\(\\d\+\)", str(mid_page), url)
 
-        # html, status = await FM.async_fetch_html(url=url, retry_delay=self.REQUESTS_CONFIG.get("retry_delay"))
         html, status = await self.FETCHER.fetch_html(url=url)
         if status is None or status == 404:
             return await self._get_start_page(base_url, start_date, start_page + 1, end_page)
@@ -188,7 +185,6 @@ class StaticWebsiteCrawler(BaseCrawler):
         url = re.sub(r"\(\\s\+\)", base_url, self.PAGES_CONFIG.get("url_pattern"))
         url = re.sub(r"\(\\d\+\)", str(mid_page), url)
 
-        # html, status = await FM.async_fetch_html(url=url, retry_delay=self.REQUESTS_CONFIG.get("retry_delay"))
         html, status = await self.FETCHER.fetch_html(url=url)
         if status is None or status == 404:
             return await self._get_end_page(base_url, end_date, start_page, end_page - 1)
@@ -234,7 +230,7 @@ class StaticWebsiteCrawler(BaseCrawler):
             all_articles_urls.extend(article_urls)
             await self._sleep_between_requests(start_time)
 
-        Logger.info(prefix="SPIDER", message=f" Obteniendo {len(all_articles_urls)} artículos")
+        Logger.info(prefix="SPIDER", message=f"Obteniendo {len(all_articles_urls)} artículos")
 
         # Get all articles from the urls
         all_articles = []
@@ -259,7 +255,6 @@ class StaticWebsiteCrawler(BaseCrawler):
         return [item for sublist in block_urls for item in sublist]
 
     async def _get_article_urls(self, page: str) -> List[str]:
-        # html, status = await FM.async_fetch_html(page, self.REQUESTS_CONFIG.get("retry_delay"), int(self.REQUESTS_CONFIG.get("requests_per_minute") / 60))
         html, status = await self.FETCHER.fetch_html(page)
         if status is None or status == 404:
             return []
@@ -269,9 +264,7 @@ class StaticWebsiteCrawler(BaseCrawler):
         selectors = []
         for selector in self.ARTICLES_LIST_CONFIG.get("selectors"):
             selectors.append(f"{selector} {self.ARTICLES_LIST_CONFIG.get('url').get('selector')}")
-        # selector = f"{self.ARTICLES_LIST_CONFIG.get('selector')} {self.ARTICLES_LIST_CONFIG.get('url').get('selector')}"
         
-        # article_links = soup.select(selector)
         article_links = self._get_html_elements(soup, selectors)
         if article_links is None:
             return []
@@ -293,7 +286,6 @@ class StaticWebsiteCrawler(BaseCrawler):
         return await asyncio.gather(*tasks, return_exceptions=False)
 
     async def _get_article(self, url: str) -> Article | None:
-        # html, status = await FM.async_fetch_html(url, self.REQUESTS_CONFIG.get("retry_delay"), int(self.REQUESTS_CONFIG.get("requests_per_minute") / 60))
         html, status = await self.FETCHER.fetch_html(url)
         if status is None or status == 404:
             return None

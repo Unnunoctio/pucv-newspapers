@@ -46,6 +46,10 @@ class CrawlerService:
                             from crawlers.customs.cooperativa import CooperativaCrawler
 
                             self.crawlers.append(CooperativaCrawler(crawler_config, self.date_range))
+                        elif crawler_config.get("custom") == "EMOL":
+                            from crawlers.customs.emol import EmolCrawler
+
+                            self.crawlers.append(EmolCrawler(crawler_config, self.date_range))
                         else:
                             raise ValueError(f"Custom crawler [{crawler_config.get('custom')}] not supported")
                     else:
@@ -53,6 +57,10 @@ class CrawlerService:
                             from crawlers.generics.static_website import StaticWebsiteCrawler
 
                             self.crawlers.append(StaticWebsiteCrawler(crawler_config, self.date_range))
+                        elif crawler_config.get("type") == "API":
+                            from crawlers.generics.api import ApiCrawler
+
+                            self.crawlers.append(ApiCrawler(crawler_config, self.date_range))
                         else:
                             raise ValueError(f"Crawler type [{crawler_config.get('type')}] not supported")
                 except Exception as e:
@@ -69,11 +77,7 @@ class CrawlerService:
 
             Logger.info("TIMER", f"{crawler.NAME.value}: {self._print_time(end_time - start_time)}")
 
-            self.stats.append({
-                "site_name": crawler.NAME.value,
-                "articles": len(articles),
-                "time": end_time - start_time}
-            )
+            self.stats.append({"site_name": crawler.NAME.value, "articles": len(articles), "time": end_time - start_time})
             self._save_articles(articles)
 
         self._print_stats()

@@ -1,5 +1,6 @@
 import asyncio
-from typing import Optional, Tuple
+import json
+from typing import Any, Optional, Tuple
 
 from aiohttp import ClientSession, ClientTimeout, TCPConnector
 
@@ -53,6 +54,40 @@ class FetcherManager:
                             await asyncio.sleep(self.RETRY_DELAY)
                 except Exception as e:
                     Logger.error("ERROR", f"Error to fetch URL: {url} [Error: {e}]")
+                    Logger.info(prefix="NETWORK", message=f"Retry {attempt + 1} for URL: {url}, in {self.RETRY_DELAY} seconds...")
+                    await asyncio.sleep(self.RETRY_DELAY)
+
+        Logger.error("TIMER", f"Number of attempts exceeded for URL: {url}")
+        return None, None
+
+    async def fetch_json(self, url: str, **kwargs) -> Tuple[Optional[Any], Optional[int]]:
+        """Fetch the url and return the response, status code and exception"""
+        for attempt in range(self.MAX_RETRIES):
+            async with self.semaphore:
+                try:
+                    session = await self._get_session()
+                    async with session.get(url, **kwargs) as response:
+                        if response.status == 200:
+                            try:
+                                json_data = await response.json()
+
+                                Logger.info(prefix="SUCCESS", message=f"[{response.status}] fetch for URL: {url}")
+                                return json_data, response.status
+                            except json.JSONDecodeError as e:
+                                Logger.error("SYSTEM", f"Error to decode JSON for URL: {url} [Error: {e}]")
+                                return None, response.status
+                            except Exception as e:
+                                Logger.error("ERROR", f"Error to fetch JSON for URL: {url} [Error: {e}]")
+                                return None, response.status
+                        elif response.status == 404:
+                            Logger.error("ERROR", f"[404] not found for URL: {url}")
+                            return None, 404
+                        else:
+                            Logger.warning("WARNING", f"[{response.status}] error to fetch JSON for URL: {url}")
+                            Logger.info(prefix="NETWORK", message=f"Retry {attempt + 1} for URL: {url}, in {self.RETRY_DELAY} seconds...")
+                            await asyncio.sleep(self.RETRY_DELAY)
+                except Exception as e:
+                    Logger.error("ERROR", f"Error to fetch JSON for URL: {url} [Error: {e}]")
                     Logger.info(prefix="NETWORK", message=f"Retry {attempt + 1} for URL: {url}, in {self.RETRY_DELAY} seconds...")
                     await asyncio.sleep(self.RETRY_DELAY)
 

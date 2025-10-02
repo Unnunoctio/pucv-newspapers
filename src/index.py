@@ -3,13 +3,13 @@ from services.crawler_service import CrawlerService
 # ?: Definir los periodicos a ejecutar
 CRAWLERS_TO_RUN = {
     # "ADN_RADIO": False,
-    "COOPERATIVA": True,
-    "EL_DESCONCIERTO": True,
-    "EL_MOSTRADOR": True,
-    # "EMOL": False,
-    "RADIO_UCHILE": True,
-    "TVN_ACTUALIDAD": True,
-    "TVN_NOTICIAS": True,
+    "COOPERATIVA": False,
+    "EL_DESCONCIERTO": False,
+    "EL_MOSTRADOR": False,
+    "EMOL": True,
+    "RADIO_UCHILE": False,
+    "TVN_ACTUALIDAD": False,
+    "TVN_NOTICIAS": False,
 }
 
 # ?: FORMATO DE FECHAS: DD-MM-YYYY

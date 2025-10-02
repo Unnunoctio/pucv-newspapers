@@ -1,4 +1,5 @@
 crawlers:
+  # TODO: STATIC WEBSITE CONFIG
   - name: COOPERATIVA
     custom: COOPERATIVA
     base_urls:
@@ -307,3 +308,50 @@ crawlers:
           - script
           - blockquote
           - div.prontus-card-container
+
+  # TODO: API CONFIG
+  - name: EMOL
+    custom: EMOL
+    base_urls:
+      - https://newsapi.ecn.cl/NewsApi/emol/buscador/emol?size=(\size+)&from=(\from+)
+
+    requests_config:
+      retry_delay: 60 # seconds
+      requests_per_minute: 60 # 1 per second
+      articles_per_request: 250
+
+    pagination:
+      total_articles:
+        path: hits.total
+
+    articles_list_config:
+      path: hits.hits
+    
+    article_config:
+      url:
+        paths:
+          - _source.permalink
+      title:
+        paths:
+          - _source.title 
+      author:
+        paths:
+          - _source.fuente
+      date:
+        paths:
+          - _source.fechaPublicacion
+        formats:
+          - "%Y-%m-%dT%H:%M:%S.%f"
+          - "%Y-%m-%dT%H:%M:%S"
+      tag:
+        paths:
+          - _source.subSeccion
+          - _source.seccion 
+      drophead:
+        paths:
+          - _source.bajada.0.texto
+      body:
+        paths:
+          - _source.texto
+        is_html: true
+    
