@@ -67,7 +67,7 @@ class EmolCrawler(ApiCrawler):
         article_list = self._get_nested_safe(data_json, self.ARTICLES_LIST_CONFIG.get("path"))
         if article_list is None or len(article_list) == 0:
             Logger.error("NETWORK", f"Don't found any articles for URL: {url}")
-            await asyncio.wait(self.FETCHER.RETRY_DELAY)
+            await asyncio.sleep(self.FETCHER.RETRY_DELAY)
             return await self._get_start_paper(base_url, start_date, start_article + 1, end_article)
 
         # Get date from article
@@ -116,7 +116,7 @@ class EmolCrawler(ApiCrawler):
         article_list = self._get_nested_safe(data_json, self.ARTICLES_LIST_CONFIG.get("path"))
         if article_list is None or len(article_list) == 0:
             Logger.error("NETWORK", f"Don't found any articles for URL: {url}")
-            await asyncio.wait(self.FETCHER.RETRY_DELAY)
+            await asyncio.sleep(self.FETCHER.RETRY_DELAY)
             return await self._get_end_paper(base_url, end_date, start_article, end_article - 1)
 
         # Get date from article
