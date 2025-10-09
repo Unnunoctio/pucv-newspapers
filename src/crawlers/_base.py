@@ -15,8 +15,8 @@ class BaseCrawler(ABC):
             self.NAME = NewspaperType(config.get("name"))
             self.BASE_URLS = config.get("base_urls")
             self.REQUESTS_CONFIG = config.get("requests_config")
-        except ValueError:
-            raise ValueError("Invalid crawler main configuration")
+        except ValueError as e:
+            raise ValueError("Invalid crawler main configuration: " + str(e))
 
         self.date_range = date_range
 

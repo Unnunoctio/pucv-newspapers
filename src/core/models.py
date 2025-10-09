@@ -23,6 +23,7 @@ class NewspaperType(Enum):
     RADIO_UCHILE = "RADIO_UCHILE"
     EL_DESCONCIERTO = "EL_DESCONCIERTO"
     ADN_RADIO = "ADN_RADIO"
+    # CIPER = "CIPER"
 
 
 @dataclass
