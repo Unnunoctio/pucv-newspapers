@@ -34,6 +34,8 @@ class StaticWebsiteCrawler(BaseCrawler):
         """Generate the list of pages to crawl"""
         total_pages = await self._get_total_pages(base_url)
         start_page, end_page = await self._get_range_pages(base_url, self.date_range.start_date, self.date_range.end_date, 1, total_pages)
+        if end_page > start_page:
+            start_page, end_page = end_page, start_page
 
         Logger.info(prefix="INFO", message=f"Getting pages between: {end_page} and {start_page}")
 

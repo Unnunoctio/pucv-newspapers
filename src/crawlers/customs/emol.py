@@ -23,6 +23,8 @@ class EmolCrawler(ApiCrawler):
         total_papers = await self._get_total_articles(base_url)
         start_paper = await self._get_start_paper(base_url, self.date_range.start_date, 0, total_papers - 1)
         end_paper = await self._get_end_paper(base_url, self.date_range.end_date, 0, start_paper)
+        if end_paper > start_paper:
+            start_paper, end_paper = end_paper, start_paper
 
         Logger.info(prefix="INFO", message=f"Getting papers between: {end_paper} and {start_paper}")
         Logger.info(prefix="SPIDER", message=f"Obteniendo: {start_paper - end_paper} artículos")
