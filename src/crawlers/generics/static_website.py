@@ -84,7 +84,7 @@ class StaticWebsiteCrawler(BaseCrawler):
 
         html, status = await self.FETCHER.fetch_html(url=url)
         if status is None or status == 404:
-            return await self._get_range_pages(base_url, start_date, end_date, start_page + 1, end_page)
+            return await self._get_range_pages(base_url, start_date, end_date, start_page + 2, end_page)
 
         # Format html
         soup = BeautifulSoup(html, "html.parser")
@@ -95,8 +95,9 @@ class StaticWebsiteCrawler(BaseCrawler):
         
         if len(articles_date_items) == 0:
             Logger.error("NETWORK", f"Don't found any article dates for URL: {url}")
+            Logger.info(prefix="NETWORK", message=f"Retry in {self.FETCHER.RETRY_DELAY} seconds...")
             await asyncio.sleep(self.FETCHER.RETRY_DELAY)
-            return await self._get_range_pages(base_url, start_date, end_date, start_page + 1, end_page)
+            return await self._get_range_pages(base_url, start_date, end_date, start_page + 2, end_page)
         last_article_date_item = articles_date_items[-1]
 
         if datetime_config.get("attribute") is not None:
@@ -147,7 +148,7 @@ class StaticWebsiteCrawler(BaseCrawler):
 
         html, status = await self.FETCHER.fetch_html(url=url)
         if status is None or status == 404:
-            return await self._get_start_page(base_url, start_date, start_page + 1, end_page)
+            return await self._get_start_page(base_url, start_date, start_page + 2, end_page)
 
         # Format html
         soup = BeautifulSoup(html, "html.parser")
@@ -157,8 +158,9 @@ class StaticWebsiteCrawler(BaseCrawler):
         articles_date_items = soup.select(datetime_config.get("selector"))
         if len(articles_date_items) == 0:
             Logger.error("NETWORK", f"Don't found any article dates for URL: {url}")
+            Logger.info(prefix="NETWORK", message=f"Retry in {self.FETCHER.RETRY_DELAY} seconds...")
             await asyncio.sleep(self.FETCHER.RETRY_DELAY)
-            return await self._get_start_page(base_url, start_date, start_page + 1, end_page)
+            return await self._get_start_page(base_url, start_date, start_page + 2, end_page)
         last_article_date_item = articles_date_items[-1]
 
         if datetime_config.get("attribute") is not None:
@@ -199,6 +201,7 @@ class StaticWebsiteCrawler(BaseCrawler):
         articles_date_items = soup.select(datetime_config.get("selector"))
         if len(articles_date_items) == 0:
             Logger.error("NETWORK", f"Don't found any article dates for URL: {url}")
+            Logger.info(prefix="NETWORK", message=f"Retry in {self.FETCHER.RETRY_DELAY} seconds...")
             await asyncio.sleep(self.FETCHER.RETRY_DELAY)
             return await self._get_end_page(base_url, end_date, start_page, end_page - 1)
         last_article_date_item = articles_date_items[-1]
@@ -296,6 +299,7 @@ class StaticWebsiteCrawler(BaseCrawler):
             article = self._parse_article(html, url)
             if article.date is None:
                 Logger.error("DB", f"No se ha podido obtener los datos de la noticia: {url}")
+                print(article)
                 return None
 
             return article

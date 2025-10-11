@@ -309,61 +309,61 @@ crawlers:
           - blockquote
           - div.prontus-card-container
 
-  # - name: CIPER
-  #   type: STATIC_WEBSITE
-  #   base_urls:
-  #     - https://www.ciperchile.cl/category/investigacion
-  #     - https://www.ciperchile.cl/category/actualidad
-  #     - https://www.ciperchile.cl/category/columna
-  #     - https://www.ciperchile.cl/category/opinion-del-lector
+  - name: CIPER
+    type: STATIC_WEBSITE
+    base_urls:
+      # - https://www.ciperchile.cl/category/investigacion
+      - https://www.ciperchile.cl/category/actualidad
+      # - https://www.ciperchile.cl/category/columna
+      # - https://www.ciperchile.cl/category/opinion-del-lector
 
-  #   requests_config:
-  #     retry_delay: 30 # seconds
-  #     requests_per_minute: 600 # 10 per second
+    requests_config:
+      retry_delay: 30 # seconds
+      requests_per_minute: 600 # 10 per second
 
-  #   pages_config:
-  #     url_pattern: (\s+)/page/(\d+)/
-  #     pagination:
-  #       selector: nav ul.pagination li.page-item a
-  #       pos_pagination_item: -2
-  #       pos_href: 6
+    pages_config:
+      url_pattern: (\s+)/page/(\d+)/
+      pagination:
+        selector: nav ul.pagination li.page-item a
+        pos_pagination_item: -2
+        pos_href: 6
     
-  #   articles_list_config:
-  #     selectors:
-  #       - article
-  #     datetime:
-  #       selector: p.article__text--date
-  #       format: "%d-%m-%Y"
-  #     url:
-  #       selector: a.alticle-link
+    articles_list_config:
+      selectors:
+        - article
+      datetime:
+        selector: p.article__text--date
+        format: "%d-%m-%Y"
+      url:
+        selector: a.alticle-link
     
-  #   article_config:
-  #     title:
-  #       selectors:
-  #         - h1.article-big-text__title
-  #     author:
-  #       selectors:
-  #         - p.article-big-text__author
-  #     date:
-  #       selectors:
-  #         - p.article-big-text__date
-  #       format: "%d.%m.%Y"
-  #     tag:
-  #       selectors:
-  #         - div.section-featured-title h3
-  #     drophead:
-  #       selectors:
-  #         - p.article-big-text__excerpt
-  #     body:
-  #       selectors:
-  #         - div.row.position-relative div.col-lg-9
-  #       remove_elements:
-  #         - iframe
-  #         - script
-  #         - blockquote
-  #         - img
-  #         - div
-  #         - p.article-big-text__excerpt
+    article_config:
+      title:
+        selectors:
+          - h1.article-big-text__title
+      author:
+        selectors:
+          - p.article-big-text__author
+      date:
+        selectors:
+          - p.article-big-text__date
+        format: "%d.%m.%Y"
+      tag:
+        selectors:
+          - div.section-featured-title h3
+      drophead:
+        selectors:
+          - p.article-big-text__excerpt
+      body:
+        selectors:
+          - div.row.position-relative div.col-lg-9
+        remove_elements:
+          - iframe
+          - script
+          - blockquote
+          - img
+          - div
+          - p.article-big-text__excerpt
 
 
   # TODO: API CONFIG
