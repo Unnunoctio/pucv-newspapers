@@ -14,8 +14,8 @@ CRAWLERS_TO_RUN = {
 }
 
 # ?: FORMATO DE FECHAS: DD-MM-YYYY
-START_DATE = "09-10-2025"
-END_DATE = "10-10-2025"
+START_DATE = "01-01-2025"
+END_DATE = "15-10-2025"
 
 # ?: Ejecutar el servicio
 crawler_service = CrawlerService(START_DATE, END_DATE, CRAWLERS_TO_RUN)
