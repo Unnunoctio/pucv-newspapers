@@ -11,12 +11,15 @@ from utils.logger import Logger
 
 class ExcelExporter:
     @classmethod
-    def _clean_html_to_excel(cls, html: str) -> str:
-        if not html:
+    def _clean_text_to_excel(cls, text: str) -> str:
+        if not text:
             return ""
 
-        html = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]", "", html)
-        return html
+        # Eliminar caracteres de control ASCII
+        text = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]", "", text)
+        # Eliminar algunos caracteres invisibles Unicode problemáticos
+        text = re.sub(r"[\u200b\u200c\u200d\u2028\u2029]", "", text)
+        return text
 
     @staticmethod
     def export(articles: List[Article], file_name: str, folder_path: str) -> None:
@@ -51,13 +54,13 @@ class ExcelExporter:
                 [
                     article.newspaper.value,
                     article.url,
-                    article.title or "",
-                    article.author or "",
+                    ExcelExporter._clean_text_to_excel(article.title) or "",
+                    ExcelExporter._clean_text_to_excel(article.author) or "",
                     article.date.strftime("%d-%m-%Y") if article.date else "",
-                    article.tag or "",
-                    article.drophead or "",
-                    article.body or "",
-                    ExcelExporter._clean_html_to_excel(article.body_html) or "",
+                    ExcelExporter._clean_text_to_excel(article.tag) or "",
+                    ExcelExporter._clean_text_to_excel(article.drophead) or "",
+                    ExcelExporter._clean_text_to_excel(article.body) or "",
+                    ExcelExporter._clean_text_to_excel(article.body_html) or "",
                 ]
             )
 
