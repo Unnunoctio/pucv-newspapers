@@ -5,10 +5,9 @@ from typing import List
 
 import yaml
 
-from core.models import Article, DateRange
+from core.models import DateRange
 from crawlers._base import BaseCrawler
-from services.excel_exporter import ExcelExporter
-from utils.file_utils import FileUtils
+from services.data_storage import DataStorage
 from utils.logger import Logger
 
 
@@ -69,7 +68,7 @@ class CrawlerService:
         # Set stats
         self.stats = []
 
-    def run(self) -> None:
+    def run(self, data_storage: DataStorage) -> None:
         for crawler in self.crawlers:
             start_time = time.time()
             articles = asyncio.run(crawler.crawl())
@@ -78,7 +77,7 @@ class CrawlerService:
             Logger.info("TIMER", f"{crawler.NAME.value}: {self._print_time(end_time - start_time)}")
 
             self.stats.append({"site_name": crawler.NAME.value, "articles": len(articles), "time": end_time - start_time})
-            self._save_articles(articles)
+            asyncio.run(data_storage.save_articles(articles, self.date_range))
 
         self._print_stats()
 
@@ -97,22 +96,4 @@ class CrawlerService:
             Logger.info("INFO", f"Site: {stat['site_name']}")
             Logger.info("INFO", f"Articles: {stat['articles']}")
             Logger.info("INFO", f"Time: {self._print_time(stat['time'])}")
-        print("-------------------------------------------------------------------")
-
-    def _save_articles(self, articles: List[Article]) -> None:
-        print()
-        if len(articles) == 0:
-            Logger.info("INFO", "No se encontraron artículos")
-            return
-
-        try:
-            folder_path = FileUtils.create_folder("newspapers")
-            ExcelExporter.export(
-                articles,
-                f"newspapers_{self.date_range.start_date.strftime('%d-%m-%Y')}_to_{self.date_range.end_date.strftime('%d-%m-%Y')}.xlsx",
-                folder_path,
-            )
-        except Exception as e:
-            Logger.error("FILE", f"Error exporting articles to Excel: {e}")
-
         print("-------------------------------------------------------------------")
