@@ -10,7 +10,6 @@ from services.data_storage import DataStorage
 
 # ?: Definir los periodicos a ejecutar
 CRAWLERS_TO_RUN = {
-    # "ADN_RADIO": False,
     "COOPERATIVA": False,
     "EL_DESCONCIERTO": False,
     "EL_MOSTRADOR": False,
@@ -32,7 +31,7 @@ if IS_MANUAL:
     CrawlerService(START_DATE, END_DATE, CRAWLERS_TO_RUN).run(data_storage=DataStorage("EXCEL"))
 else:
     # ?: MONGODB DATABASE URL & COLLECTION NAME
-    MONGO_URI = "mongodb://localhost:27017" # Your MongoDB connection string
+    MONGO_URI = "mongodb://localhost:27017"  # Your MongoDB connection string
     MONGO_DATABASE = "newspapers"
 
     # ?: CRON SCHEDULE DEFINITION
