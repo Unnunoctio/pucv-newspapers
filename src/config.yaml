@@ -1,0 +1,414 @@
+crawlers:
+  # TODO: STATIC WEBSITE CONFIG
+  - name: COOPERATIVA
+    custom: COOPERATIVA
+    base_urls:
+      - https://www.cooperativa.cl
+
+    requests_config:
+      retry_delay: 60 # seconds
+      requests_per_minute: 1800 # 30 per second
+    
+    pages_config:
+      url_pattern: (\s+)/noticias/site/cache/nroedic/todas/(\d+).html
+    
+    articles_list_config:
+      selectors:
+        - .art-todas
+        - .content .tdd .bloque-tit-fh
+      url:
+        selector: a
+        prefix: https://www.cooperativa.cl
+    
+    article_config:
+      title:
+        selectors:
+          - h1.titular
+      author:
+        selectors:
+          - .fecha-publicacion div span
+      date:
+        selectors:
+          - .fecha-publicacion time
+      tag:
+        selectors:
+          - .rotulo-topicos a:nth-child(1) span
+      drophead:
+        selectors:
+          - .contenedor-bajada .texto-bajada
+      body:
+        selectors:
+          - .contenedor-cuerpo .texto-bajada .cuerpo-articulo
+        remove_elements:
+          - iframe
+          - script
+          - blockquote
+          - p.prompt
+
+  - name: EL_DESCONCIERTO
+    type: STATIC_WEBSITE
+    base_urls:
+      - https://eldesconcierto.cl/noticias
+      - https://eldesconcierto.cl/opinion
+      - https://eldesconcierto.cl/politica
+      - https://eldesconcierto.cl/reportajes
+
+    requests_config:
+      retry_delay: 60 # seconds
+      requests_per_minute: 900 # 15 per second
+
+    pages_config:
+      url_pattern: (\s+)?page=(\d+)
+      pagination:
+        selector: ul.pagination li a
+        pos_pagination_item: -2
+        split_href: ?page=
+        pos_href: -1
+    
+    articles_list_config:
+      selectors:
+        - article
+      datetime:
+        selector: span.leading-tight:nth-child(2)
+        format: "%d.%m.%Y"
+      url:
+        selector: a
+        prefix: https://eldesconcierto.cl
+
+    article_config:
+      title:
+        selectors:
+          - h1.text-xl.font-bold.text-white
+      author:
+        selectors:
+          - div.px-10.py-6.text-sm.font-normal.text-gray-600 span:nth-child(1)
+      date:
+        selectors:
+          - div.px-10.py-6.text-sm.font-normal.text-gray-600 span:nth-child(2)
+        format: "%d.%m.%Y"
+      tag:
+        selectors:
+          - div.flex.items-center.px-4.text-gray-400 span:last-child
+      drophead:
+        selectors:
+          - div.px-10.py-6.text-lg.text-gray-700.bg-gray-100.border-l-4.border-brand-300
+      body:
+        selectors:
+          - div.single-post__content
+        remove_elements:
+          - iframe
+          - script
+          - blockquote
+          - div
+  
+  - name: EL_MOSTRADOR
+    type: STATIC_WEBSITE
+    base_urls:
+      - https://www.elmostrador.cl
+
+    requests_config:
+      retry_delay: 310 # seconds
+      requests_per_minute: 1800 # 30 per second
+
+    pages_config:
+      url_pattern: (\s+)/categoria/dia/page/(\d+)/
+      pagination:
+        selector: .the-pagination .the-pagination__item
+        pos_pagination_item: -1
+        pos_href: 6
+    
+    articles_list_config:
+      selectors:
+        - .d-tag-card
+      datetime:
+        selector: .d-tag-card__date
+        attribute: datetime
+        format: "%d-%m-%Y"
+      url:
+        selector: .d-tag-card__title .d-tag-card__permalink
+    
+    article_config:
+      title:
+        selectors:
+          - .d-the-single__title
+      author:
+        selectors:
+          - .the-by__permalink
+          - .the-single-author__permalink
+      date:
+        selectors:
+          - .d-the-single__date
+        attribute: datetime
+        format: "%Y-%m-%d"
+      tag:
+        selectors:
+          - .d-the-single-media__bag
+      drophead:
+        selectors:
+          - .d-the-single__excerpt
+      body:
+        selectors:
+          - .d-the-single-wrapper__text
+        remove_elements:
+          - iframe
+          - script
+          - blockquote
+          - div.responsive-container
+          - div.the-single-cards
+    
+  - name: RADIO_UCHILE
+    type: STATIC_WEBSITE
+    base_urls:
+      - https://radio.uchile.cl
+    
+    requests_config:
+      retry_delay: 60 # seconds
+      requests_per_minute: 1800 # 30 per second
+
+    pages_config:
+      url_pattern: (\s+)/noticias/page/(\d+)/
+      pagination:
+        selector: .pagination li a.page-numbers
+        pos_pagination_item: -2
+        pos_href: -2
+    
+    articles_list_config:
+      selectors:
+        - div.post
+      datetime:
+        selector: ul.meta li:nth-child(2)
+        format: "%d-%m-%Y"
+      url:
+        selector: .details .post-title a
+    
+    article_config:
+      title:
+        selectors:
+          - div.post-header h1.title
+      author:
+        selectors:
+          - .main-content ol.breadcrumb li.breadcrumb-item a
+          - div.post-header ul.meta li:nth-child(1)
+      date:
+        selectors:
+          - div.post-header ul.meta li:last-child
+        format: "%d-%m-%Y"
+      tag:
+        selectors:
+          - div.post-bottom a.tag:last-child
+      drophead:
+        selectors:
+          - div.post-header span.title
+      body:
+        selectors:
+          - section.main-content div.post-content
+        remove_elements:
+          - iframe
+          - script
+          - blockquote
+  
+  - name: TVN_ACTUALIDAD
+    custom: TVN
+    base_urls: 
+      - https://www.tvn.cl
+
+    requests_config:
+      retry_delay: 60 # seconds
+      requests_per_minute: 1800 # 30 per second
+      filter_inside_date_range: false
+
+    pages_config:
+      url_pattern: (\s+)/noticias/actualidad/p/(\d+)/
+      pagination:
+        selector: .auxi .wp-pagenavi a
+        pos_pagination_item: -1
+        pos_href: -1
+    
+    articles_list_config:
+      selectors:
+        - .auxi .row article
+      url:
+        selector: a
+        prefix: https://www.tvn.cl
+    
+    article_config:
+      title:
+        selectors:
+          - .tit
+      author:
+        selectors:
+          - .cont-credits .author
+      date:
+        selectors:
+          - .toolbar .fecha
+          - .date-video
+      tag:
+        selectors:
+          - .breadcrumbs .breadcrumb:last-child a
+          - .tags .tags__content .tags__tag:last-child
+      drophead:
+        selectors:
+          - .baj
+      body:
+        selectors:
+          - .CUERPO
+        remove_elements:
+          - iframe
+          - script
+          - blockquote
+          - div.prontus-card-container
+
+  - name: TVN_NOTICIAS
+    custom: TVN
+    base_urls:
+      - https://www.tvn.cl
+
+    requests_config:
+      retry_delay: 60 # seconds
+      requests_per_minute: 1800 # 30 per second
+      filter_inside_date_range: false
+
+    pages_config:
+      url_pattern: (\s+)/noticias/p/(\d+)/
+      pagination:
+        selector: .auxi .wp-pagenavi a
+        pos_pagination_item: -1
+        pos_href: -1
+    
+    articles_list_config:
+      selectors:
+        - .auxi .row article
+      url:
+        selector: a
+        prefix: https://www.tvn.cl
+    
+    article_config:
+      title:
+        selectors:
+          - .tit
+      author:
+        selectors:
+          - .cont-credits .author
+      date:
+        selectors:
+          - .toolbar .fecha
+          - .date-video
+      tag:
+        selectors:
+          - .breadcrumbs .breadcrumb:last-child a
+          - .tags .tags__content .tags__tag:last-child
+      drophead:
+        selectors:
+          - .baj
+      body:
+        selectors:
+          - .CUERPO
+        remove_elements:
+          - iframe
+          - script
+          - blockquote
+          - div.prontus-card-container
+
+  - name: CIPER
+    type: STATIC_WEBSITE
+    base_urls:
+      # - https://www.ciperchile.cl/category/investigacion
+      - https://www.ciperchile.cl/category/actualidad
+      # - https://www.ciperchile.cl/category/columna
+      # - https://www.ciperchile.cl/category/opinion-del-lector
+
+    requests_config:
+      retry_delay: 30 # seconds
+      requests_per_minute: 600 # 10 per second
+
+    pages_config:
+      url_pattern: (\s+)/page/(\d+)/
+      pagination:
+        selector: nav ul.pagination li.page-item a
+        pos_pagination_item: -2
+        pos_href: 6
+    
+    articles_list_config:
+      selectors:
+        - article
+      datetime:
+        selector: p.article__text--date
+        format: "%d-%m-%Y"
+      url:
+        selector: a.alticle-link
+    
+    article_config:
+      title:
+        selectors:
+          - h1.article-big-text__title
+      author:
+        selectors:
+          - p.article-big-text__author
+      date:
+        selectors:
+          - p.article-big-text__date
+        format: "%d.%m.%Y"
+      tag:
+        selectors:
+          - div.section-featured-title h3
+      drophead:
+        selectors:
+          - p.article-big-text__excerpt
+      body:
+        selectors:
+          - div.row.position-relative div.col-lg-9
+        remove_elements:
+          - iframe
+          - script
+          - blockquote
+          - img
+          - div
+          - p.article-big-text__excerpt
+
+
+  # TODO: API CONFIG
+  - name: EMOL
+    custom: EMOL
+    base_urls:
+      - https://newsapi.ecn.cl/NewsApi/emol/buscador/emol?size=(\size+)&from=(\from+)
+
+    requests_config:
+      retry_delay: 60 # seconds
+      requests_per_minute: 60 # 1 per second
+      articles_per_request: 250
+
+    pagination:
+      total_articles:
+        path: hits.total
+
+    articles_list_config:
+      path: hits.hits
+    
+    article_config:
+      url:
+        paths:
+          - _source.permalink
+      title:
+        paths:
+          - _source.title 
+      author:
+        paths:
+          - _source.fuente
+      date:
+        paths:
+          - _source.fechaPublicacion
+        formats:
+          - "%Y-%m-%dT%H:%M:%S.%f"
+          - "%Y-%m-%dT%H:%M:%S"
+      tag:
+        paths:
+          - _source.subSeccion
+          - _source.seccion 
+      drophead:
+        paths:
+          - _source.bajada.0.texto
+      body:
+        paths:
+          - _source.texto
+        is_html: true
+    
