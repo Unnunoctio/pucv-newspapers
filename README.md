@@ -13,7 +13,7 @@ Este proyecto es un sistema de web scraping diseñado para extraer artículos de
 
 1.  **Clonar el repositorio** (si aún no lo has hecho):
     ```bash
-    git clone <url-del-repositorio>
+    git clone https://github.com/Unnunoctio/pucv-newspapers.git
     cd pucv-newspapers
     ```
 
